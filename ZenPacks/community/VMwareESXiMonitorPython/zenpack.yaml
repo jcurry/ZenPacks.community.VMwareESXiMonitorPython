@@ -1,0 +1,146 @@
+name: ZenPacks.community.VMwareESXiMonitorPython
+
+zProperties:
+  DEFAULT:
+    category: VMware
+  zVSphereUsername:
+    type: string
+  zVSpherePassword:
+    type: password
+
+device_classes:
+  /Server/Linux/VMware:
+    remove: True
+  /Server/Linux/VMware/ESXi:
+    remove: True
+    zProperties:
+      zPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiHost
+
+classes:
+  DEFAULTS:
+    base: [zenpacklib.Component]
+
+  ESXiHost:
+    base: [zenpacklib.Device]
+    meta_type: ESXiHost   # Will default to this but in for completeness
+    label: ESXiHost
+    icon:  server-vmware
+
+    properties:
+      cpuMhz:
+	type: float
+	label: cpuMhz
+	short_label: cpuMhz
+      cpuModel:
+	type: string
+	label: cpuModel
+      numCpuCores:
+	type: int
+	label: numCpuCores
+      numCpuPkgs:
+	type: int
+	label: numCpuPkgs
+      numCpuCoresPerPkgs:
+	type: int
+	label: numCpuCoresPerPkgs
+      numCpuThreads:
+	type: int
+	label: numCpuThreads
+      numNics:
+	type: int
+	label: numNics
+      esxiHostName:
+	type: string
+	label: esxiHostName
+      vmotionState:
+	type: boolean
+	label: vmotionState
+
+    relationships:
+      esxiVm:
+        label: VM
+      esxiDatastore:
+        label: Datastore
+
+  ESXiVM:
+    label: ESXiVM
+    meta_type: ESXiVM   # Will default to this but in for completeness
+    order: 60   # display above Datastore
+
+    properties:
+      osType:
+	type: string
+	label: Op Sys Type
+	short_label: osType
+      memory:
+	type: int
+	label: Memory
+      # Next 2 properties are methods defined in ESXiVM.py
+      # renderers are defined in resources/VMwareESXiMonitorPython.js
+      adminStatus:
+	type: entity
+	label: Admin Status
+        renderer: Zenoss.render.adminStatus
+	label_width: 90
+	order: 3.0
+	api_only: true
+      operStatus:
+	type: entity
+	label: Oper Status
+        renderer: Zenoss.render.operStatus
+	label_width: 90
+	order: 3.1
+	api_only: true
+
+    relationships:
+      esxiHost:
+        label: Host
+
+  ESXiDatastore:
+    label: ESXiDatastore
+    meta_type: ESXiDatastore   # Will default to this but in for completeness
+    order: 70   # display after VM
+
+    properties:
+      type:
+	type: string
+	label: Type
+      capacity:
+	type: float
+	label: capacity
+        renderer: Zenoss.render.bytesString   # standard zenoss renderer
+      # Next 3 properties are methods defined in ESXiDatastore.py
+      # renderers are defined in resources/VMwareESXiMonitorPython.js
+      usedSpace:
+	type: entity
+	label: Used Space
+        renderer: Zenoss.render.used_free_space
+	label_width: 90
+	order: 3.0
+	api_only: true
+      freeSpace:
+	type: entity
+	label: Free Space
+        renderer: Zenoss.render.used_free_space
+	label_width: 90
+	order: 3.1
+	api_only: true
+      usedPercent:
+	type: entity
+	label: Used Percent
+        renderer: Zenoss.render.usedPercent
+	label_width: 90
+	order: 3.2
+	api_only: true
+	api_backendtype: method
+
+
+    relationships:
+      esxiHost:
+        label: Host
+
+
+class_relationships:
+  - ESXiHost(esxiVm) 1:MC ESXiVM(esxiHost)
+  - ESXiHost(esxiDatastore) 1:MC ESXiDatastore(esxiHost)
+

@@ -19,7 +19,7 @@ from math import isnan
 
 # Need to define some methods for the ESXiVM component
 
-class ESXiVM(schema.ESXiVM)
+class ESXiVM(schema.ESXiVM):
 
     def adminStatus(self, default = None):
         status = self.cacheRRDValue('adminStatus', default)

@@ -19,7 +19,7 @@ from math import isnan
 
 # Need to define some methods for the ESXiDatastore component
 
-class ESXiDatastore(schema.ESXiDatastore)
+class ESXiDatastore(schema.ESXiDatastore):
 
     def usedSpace(self):
         capacity = self.capacity

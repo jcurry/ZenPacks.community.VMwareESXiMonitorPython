@@ -1,25 +1,10 @@
-name: ZenPacks.community.VMwareESXiMonitorPython
-
-zProperties:
-  DEFAULT:
-    category: VMware
-  zVSphereUsername:
-    type: string
-  zVSpherePassword:
-    type: password
-
-device_classes:
-  /Server/VMware:
-    remove: True
+name: ZenPacks.community.VMwareESXiMonitor
+device_classes: !ZenPackSpec
   /Server/VMware/ESXi:
-    remove: True
-    zProperties:
-      zPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiHost
-
     templates:
       ESXiDatastore:
         description: ''
-        targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiDatastore
+        targetPythonClass: ZenPacks.community.VMwareESXiMonitor.ESXiDatastore
         thresholds:
           Connection Status:
             dsnames: [VMwareDatastore_connectionStatus]
@@ -38,7 +23,7 @@ device_classes:
                 rrdmin: 1
                 rrdmax: 2
               diskFreeSpace: {}
-            #performanceSource: VMwareDatastore
+            performanceSource: VMwareDatastore
         graphs:
           Utilization:
             units: percent
@@ -54,7 +39,7 @@ device_classes:
                 includeThresholds: true
       ESXiHost:
         description: ''
-        targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiHost
+        targetPythonClass: ZenPacks.community.VMwareESXiMonitor.ESXiHost
         thresholds:
           CPU Critical:
             dsnames: [VMwareHost_cpuUsageMin, VMwareHost_cpuUsageMax]
@@ -101,7 +86,7 @@ device_classes:
               netReceived: {}
               netTransmitted: {}
               sysUpTime: {}
-            #performanceSource: VMwareHost
+            performanceSource: VMwareHost
         graphs:
           CPU Usage:
             units: percent
@@ -210,7 +195,7 @@ device_classes:
                 legend: Outbound
       ESXiVM:
         description: ''
-        targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiVM
+        targetPythonClass: ZenPacks.community.VMwareESXiMonitor.ESXiVM
         thresholds:
           CPU Critical:
             dsnames: [VMwareGuest_cpuUsageMin, VMwareGuest_cpuUsageMax]
@@ -250,7 +235,7 @@ device_classes:
               operStatus:
                 rrdmin: 0
                 rrdmax: 4
-            #performanceSource: VMwareGuest
+            performanceSource: VMwareGuest
         graphs:
           CPU Usage:
             units: percent
@@ -312,132 +297,7 @@ device_classes:
                 lineType: AREA
                 stacked: true
                 legend: Overhead Memory
-
-classes:
-  DEFAULTS:
-    base: [zenpacklib.Component]
-
-  ESXiHost:
-    base: [zenpacklib.Device]
-    meta_type: ESXiHost   # Will default to this but in for completeness
-    label: ESXiHost
-    icon:  ESXiHost   # should default to this
-
-    properties:
-      cpuMhz:
-        type: float
-        label: cpuMhz
-        short_label: cpuMhz
-      cpuModel:
-        type: string
-        label: cpuModel
-      numCpuCores:
-        type: int
-        label: numCpuCores
-      numCpuPkgs:
-        type: int
-        label: numCpuPkgs
-      numCpuCoresPerPkgs:
-        type: int
-        label: numCpuCoresPerPkgs
-      numCpuThreads:
-        type: int
-        label: numCpuThreads
-      numNics:
-        type: int
-        label: numNics
-      esxiHostName:
-        type: string
-        label: esxiHostName
-      vmotionState:
-        type: boolean
-        label: vmotionState
-
-    relationships:
-      esxiVm:
-        label: VM
-      esxiDatastore:
-        label: Datastore
-
-  ESXiVM:
-    label: ESXiVM
-    meta_type: ESXiVM   # Will default to this but in for completeness
-    order: 60   # display above Datastore
-
-    properties:
-      osType:
-        type: string
-        label: Op Sys Type
-        short_label: osType
-      memory:
-        type: int
-        label: Memory
-      # Next 2 properties are methods defined in ESXiVM.py
-      # renderers are defined in resources/VMwareESXiMonitorPython.js
-      adminStatus:
-        type: entity
-        label: Admin Status
-        renderer: Zenoss.render.adminStatus
-        label_width: 90
-        order: 3.0
-        api_only: true
-      operStatus:
-        type: entity
-        label: Oper Status
-        renderer: Zenoss.render.operStatus
-        label_width: 90
-        order: 3.1
-        api_only: true
-
-    relationships:
-      esxiHost:
-        label: Host
-
-  ESXiDatastore:
-    label: ESXiDatastore
-    meta_type: ESXiDatastore   # Will default to this but in for completeness
-    order: 70   # display after VM
-
-    properties:
-      type:
-        type: string
-        label: Type
-      capacity:
-        type: float
-        label: capacity
-        renderer: Zenoss.render.bytesString   # standard zenoss renderer
-      # Next 3 properties are methods defined in ESXiDatastore.py
-      # renderers are defined in resources/VMwareESXiMonitorPython.js
-      usedSpace:
-        type: entity
-        label: Used Space
-        renderer: Zenoss.render.used_free_space
-        label_width: 90
-        order: 3.0
-        api_only: true
-      freeSpace:
-        type: entity
-        label: Free Space
-        renderer: Zenoss.render.used_free_space
-        label_width: 90
-        order: 3.1
-        api_only: true
-      usedPercent:
-        type: entity
-        label: Used Percent
-        renderer: Zenoss.render.usedPercent
-        label_width: 90
-        order: 3.2
-        api_only: true
-        api_backendtype: method
-
-
-    relationships:
-      esxiHost:
-        label: Host
-
-
-class_relationships:
-  - ESXiHost(esxiVm) 1:MC ESXiVM(esxiHost)
-  - ESXiHost(esxiDatastore) 1:MC ESXiDatastore(esxiHost)
+      ethernetCsmacd:
+        description: Standard ethernet interface template with 75% utilization threshold
+        targetPythonClass: Products.ZenModel.IpInterface
 

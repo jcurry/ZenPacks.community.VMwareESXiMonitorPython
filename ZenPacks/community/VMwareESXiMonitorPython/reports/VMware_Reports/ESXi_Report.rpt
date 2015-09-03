@@ -1,0 +1,84 @@
+<tal:block tal:define="
+    tabletitle string:ESXi Report;
+    tableName string:esxiTable;
+    tableState python:here.ZenTableManager.getTableState(tableName, sortedSence='desc', sortedHeader='esxiHostName');
+    objects python:here.ReportServer.plugin('esxi_plugin', tableState);
+    objects python:(hasattr(request, 'doExport') and list(objects)) or objects;
+    batch python:here.ZenTableManager.getBatch(tableName, objects, sortedHeader='esxiHostName', sortedSence='desc');
+    exportFields python:[('esxiHostName','ESXi Host'), ('esxiVmName','ESXi VM'), ('osType', 'Operating System Type'), ('memory','Memory'), ('adminStatus','Admin Status'), ('operStatus','Operating Status')];
+">
+    <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
+        <tal:block metal:fill-slot="report">
+            <tal:block metal:use-macro="here/templates/macros/page1">
+                <tal:block metal:fill-slot="breadCrumbPane">
+                    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>    
+                </tal:block>
+                <tal:block metal:fill-slot="contentPane">
+                    <form method="POST"
+                        tal:attributes="action request/URL;" tal:define="tabletitle string:ESXi Report;
+                        showfilterbox python:True; tblcolspan string:4
+                    ">
+                        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+                            <tal:block metal:fill-slot="zentablecontents">
+                                <tr>
+                                    <th
+                                        tal:replace="structure python:here.ZenTableManager.getTableHeader(tableName,'esxiHostName','ESXi Host')"
+                                    />
+                                    <th
+                                        tal:replace="structure python:here.ZenTableManager.getTableHeader(tableName,'esxiVmName','ESXi VM')"
+                                    />
+                                    <th
+                                        tal:replace="structure python:here.ZenTableManager.getTableHeader(tableName,'osType','Operating System Type')"
+                                    />
+                                    <th
+                                        tal:replace="structure python:here.ZenTableManager.getTableHeader(tableName,'memory','Memory')"
+                                    />
+                                    <th
+                                        tal:replace="structure python:here.ZenTableManager.getTableHeader(tableName,'adminStatus','Admin Status')"
+                                    />
+                                    <th
+                                        tal:replace="structure python:here.ZenTableManager.getTableHeader(tableName,'operStatus','Operating Status')"
+                                    />
+                                </tr>
+                                <tal:block tal:repeat="r batch">
+                                    <tr tal:define="odd repeat/r/odd" tal:attributes="class python:test(odd,'odd','even')">
+                                        <td>
+                                            <a class="tablevalues" tal:content="python:r.esxiHostName" tal:attributes="href python:r.esxiHostPath"/>
+                                        </td>
+                                        <td>
+                                            <a class="tablevalues" tal:content="python:r.esxiVmName" tal:attributes="href python:r.esxiVmPath"/>
+                                        </td>
+                                        <td class="tablevalues" tal:content="python:r.osType"/>
+                                        <td class="tablevalues" tal:content="python:r.humanBytes(r.memory)"/>
+                                        <td class="tablevalues">
+                                            <img tal:condition="python:r.adminStatus == 1" tal:attributes="src string:img/green_dot.png"/>
+                                            <img tal:condition="python:r.adminStatus == 2" tal:attributes="src string:img/red_dot.png"/>
+                                            <img tal:condition="python:r.adminStatus == 3" tal:attributes="src string:img/orange_dot.png"/>
+                                            <img tal:condition="python:r.adminStatus < 1 or r.adminStatus > 3" tal:attributes="src string:img/blue_dot.png"/>
+                                        </td>
+                                        <td class="tablevalues" tal:condition="python:r.adminStatus == 1">
+                                            <img tal:condition="python:r.operStatus == 1" tal:attributes="src string:img/green_dot.png"/>
+                                            <img tal:condition="python:r.operStatus == 2" tal:attributes="src string:img/red_dot.png"/>
+                                            <img tal:condition="python:r.operStatus == 3" tal:attributes="src string:img/yellow_dot.png"/>
+                                            <img tal:condition="python:r.operStatus == 4" tal:attributes="src string:img/grey_dot.png"/>
+                                            <img tal:condition="python:r.operStatus < 1 or r.operStatus > 4" tal:attributes="src string:img/blue_dot.png"/>
+                                        </td>
+                                        <td class="tablevalues" tal:condition="python:r.adminStatus != 1">
+                                            <img tal:attributes="src string:img/grey_dot.png"/>
+                                        </td>
+                                    </tr>
+                                </tal:block>
+                                <tr>
+                                    <td colspan="6" class="tableheader" align='center'>
+                                        <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+                                    </td>
+                                </tr>
+                            </tal:block>
+                        </tal:block>
+                    </form>
+                </tal:block>
+            </tal:block>
+        </tal:block>
+    </tal:block>
+</tal:block>
+

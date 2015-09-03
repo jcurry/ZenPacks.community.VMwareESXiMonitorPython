@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
+
+def GetArgs():
+    """
+    Supports the command-line arguments listed below.
+    """
+
+    args = dict(host='',
+                port=443,
+                user='',
+                password='',)
+
+    return args
+
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    main()

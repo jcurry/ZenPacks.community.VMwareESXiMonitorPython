@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:zcml="http://namespaces.zope.org/zcml">
+
+    <!-- Info Adapters: DataSources
+    For ZenPacks that add new datasource types you must register their Info
+    adapter(s). The info adapters provide the API that the web interface needs
+    to show information about each instance of your datasource type that is
+    created. The info adapters are also used to set the properties of the
+    datasource instances.
+    -->
+
+    <adapter
+
+        provides=".datasources.VMwareDataSource.IVMwareDataSourceInfo"
+        for=".datasources.VMwareDataSource.VMwareDataSource"
+        factory=".datasources.VMwareDataSource.VMwareDataSourceInfo"
+        />
+    </configure>

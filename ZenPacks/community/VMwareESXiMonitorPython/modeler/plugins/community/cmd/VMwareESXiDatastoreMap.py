@@ -84,7 +84,7 @@ class VMwareESXiDatastoreMap(PythonPlugin):
 
             datastores.append(ObjectMap(data=datastoreDict))
             log.debug(' datastoreDict is %s \n' % (datastoreDict))
-            print('VM Datastore is %s \n' % ( datastoreDict['id']))
+            log.debug('VM Datastore is %s \n' % ( datastoreDict['id']))
 
             maps.append(RelationshipMap(
                 relname = 'esxiDatastore',

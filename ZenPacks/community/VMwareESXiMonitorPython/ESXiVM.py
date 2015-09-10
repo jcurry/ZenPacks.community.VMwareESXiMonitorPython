@@ -21,6 +21,7 @@ from math import isnan
 
 class ESXiVM(schema.ESXiVM):
 
+    # Both types of status should be real numbers from rrd data
     def adminStatus(self, default = None):
         status = self.cacheRRDValue('adminStatus', default)
         if status is not None and status != 'Unknown' and not isnan(status):

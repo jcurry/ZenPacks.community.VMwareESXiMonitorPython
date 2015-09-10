@@ -81,7 +81,7 @@ class VMwareESXiGuestMap(PythonPlugin):
 
             log.debug(' vmDict is %s \n' % (vmDict))
 
-            print('VM Guest is %s \n' % ( vmDict['id']))
+            log.debug('VM Guest is %s \n' % ( vmDict['id']))
 
         maps.append(RelationshipMap(
             relname = 'esxiVm',

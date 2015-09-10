@@ -367,6 +367,7 @@ classes:
     label: ESXi VM
     meta_type: ESXiVM   # Will default to this but in for completeness
     order: 60   # display above Datastore
+    auto_expand_column: osType    
 
     properties:
       osType:
@@ -378,22 +379,26 @@ classes:
         type: int
         label: Memory
         order: 3.2
+        renderer: Zenoss.render.bytesString   # standard zenoss renderer
       # Next 2 properties are methods defined in ESXiVM.py
       # renderers are defined in resources/VMwareESXiMonitorPython.js
       adminStatus:
-        type: entity
+        #type: entity
+        type: int
         label: Admin Status
         renderer: Zenoss.render.adminStatus
         label_width: 90
         order: 3.3
         api_only: true
+        api_backendtype: method
       operStatus:
-        type: entity
+        type: int
         label: Oper Status
         renderer: Zenoss.render.operStatus
         label_width: 90
         order: 3.4
         api_only: true
+        api_backendtype: method
 
     relationships:
       esxiHost:
@@ -417,21 +422,23 @@ classes:
       # Next 3 properties are methods defined in ESXiDatastore.py
       # renderers are defined in resources/VMwareESXiMonitorPython.js
       usedSpace:
-        type: entity
+        type: float
         label: Used Space
         renderer: Zenoss.render.used_free_space
         label_width: 90
         order: 3.2
         api_only: true
+        api_backendtype: method
       freeSpace:
-        type: entity
+        type: float
         label: Free Space
         renderer: Zenoss.render.used_free_space
         label_width: 90
         order: 3.3
         api_only: true
+        api_backendtype: method
       usedPercent:
-        type: entity
+        type: float
         label: Used Percent
         renderer: Zenoss.render.usedPercent
         label_width: 90

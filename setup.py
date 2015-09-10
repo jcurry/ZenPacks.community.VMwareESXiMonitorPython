@@ -3,13 +3,13 @@
 # or saved.  Do not modify them directly here.
 # NB: PACKAGES is deprecated
 NAME = "ZenPacks.community.VMwareESXiMonitorPython"
-VERSION = "1.0.0dev"
-AUTHOR = "Jane Curry"
+VERSION = "3.0.0dev"
+AUTHOR = "Eric Enns, Matthias Kittl, Jane Curry"
 LICENSE = "GPLv2"
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.community']
 PACKAGES = ['ZenPacks', 'ZenPacks.community', 'ZenPacks.community.VMwareESXiMonitorPython']
 INSTALL_REQUIRES = ['ZenPacks.zenoss.PythonCollector>=1.6']
-COMPAT_ZENOSS_VERS = ""
+COMPAT_ZENOSS_VERS = ">=4.2"
 PREV_ZENPACK_NAME = ""
 # STOP_REPLACEMENTS
 ################################

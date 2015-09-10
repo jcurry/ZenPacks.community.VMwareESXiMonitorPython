@@ -91,7 +91,7 @@ class VMwareESXiHostMap(PythonPlugin):
 
             log.debug(' hostDict is %s \n' % (hostDict))
 
-        print('Host is %s \n' % ( hostDict['esxiHostName']))
+        log.debug('Host is %s \n' % ( hostDict['esxiHostName']))
         maps.append(ObjectMap({'totalMemory': host.summary.hardware.memorySize }, compname='hw'))
         maps.append(ObjectMap({'totalSwap': 0}, compname='os'))
 

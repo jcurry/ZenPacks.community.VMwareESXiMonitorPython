@@ -10,9 +10,9 @@
 #
 ################################################################################
 
-__doc__ = """VMwareESXiHostMap
+__doc__ = """VMwareESXiGuestMap
 
-VMwareESXiHostMap gathers ESXi Host information.
+VMwareESXiGuestMap gathers ESXi Guest VM information.
 
 """
 
@@ -21,7 +21,7 @@ from pyVmomi import vim
 import atexit
 from twisted.internet.defer import returnValue, inlineCallbacks
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
-from Products.DataCollector.plugins.DataMaps import ObjectMap
+from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
 
 def getData(host, username, password, port, log):
     
@@ -32,17 +32,17 @@ def getData(host, username, password, port, log):
                                    port=port)
     atexit.register(Disconnect, serviceInstance)
     content = serviceInstance.RetrieveContent()
-    host_view = content.viewManager.CreateContainerView(content.rootFolder,
-                                                        [vim.HostSystem],
+    vm_view = content.viewManager.CreateContainerView(content.rootFolder,
+                                                        [vim.VirtualMachine],
                                                         True)
-    hosts = [host for host in host_view.view]
-    log.debug(' in getData - hosts is %s \n' % (hosts))
-    host_view.Destroy()
+    vms = [vm for vm in vm_view.view]
+    log.debug(' in getData - vms is %s \n' % (vms))
+    vm_view.Destroy()
 
-    return hosts
+    return vms
 
 
-class VMwareESXiHostMap(PythonPlugin):
+class VMwareESXiGuestMap(PythonPlugin):
     deviceProperties = PythonPlugin.deviceProperties + (
         'zVSphereUsername',
         'zVSpherePassword'
@@ -67,37 +67,26 @@ class VMwareESXiHostMap(PythonPlugin):
         returnValue(s)
 
     def process(self, device, results, log):
-        #log.debug(' Start of process - results is %s \n' % (results))
+        log.debug(' Start of process - results is %s \n' % (results))
         maps = []
+        vms = []
 
-        for host in results:
-            # Don't actually see there being more than one host.....
-            hostDict = {}
-            hostDict['setOSProductKey'] = host.summary.config.product.fullName
-            hostDict['setHWProductKey'] = host.summary.hardware.model
-            hostDict['cpuMhz'] = long(host.summary.hardware.cpuMhz)
-            hostDict['cpuModel'] = host.summary.hardware.cpuModel
-            hostDict['numCpuCores'] = int(host.summary.hardware.numCpuCores)
-            hostDict['numCpuPkgs'] = int(host.summary.hardware.numCpuPkgs)
-            hostDict['numCpuCoresPerPkgs'] = hostDict['numCpuCores'] / hostDict['numCpuPkgs']
-            hostDict['numCpuThreads'] = int(host.summary.hardware.numCpuThreads)
-            hostDict['numNics'] = int(host.summary.hardware.numNics)
-            hostDict['esxiHostName'] = host.summary.config.name
-            vmotionState = host.summary.config.vmotionEnabled
-            if vmotionState == 0:
-                hostDict['vmotionState'] = True
-            else:
-                hostDict['vmotionState'] = False
+        for vm in results:
+            vmDict = {}
+            vmDict['id'] = self.prepId(vm.name)
+            vmDict['title'] = vm.name
+            vmDict['memory'] = int(vm.config.hardware.memoryMB) * 1024 * 1024
+            vmDict['osType'] = vm.config.guestFullName
+            vms.append(ObjectMap(data=vmDict))
 
-            log.debug(' hostDict is %s \n' % (hostDict))
+            log.debug(' vmDict is %s \n' % (vmDict))
 
-        print('Host is %s \n' % ( hostDict['esxiHostName']))
-        maps.append(ObjectMap({'totalMemory': host.summary.hardware.memorySize }, compname='hw'))
-        maps.append(ObjectMap({'totalSwap': 0}, compname='os'))
+            print('VM Guest is %s \n' % ( vmDict['id']))
 
-        maps.append(ObjectMap(
-            modname = 'ZenPacks.community.VMwareESXiMonitorPython.ESXiHost',
-            data = hostDict ))
+        maps.append(RelationshipMap(
+            relname = 'esxiVm',
+            modname = 'ZenPacks.community.VMwareESXiMonitorPython.ESXiVM',
+            objmaps = vms ))
 
         return maps
 

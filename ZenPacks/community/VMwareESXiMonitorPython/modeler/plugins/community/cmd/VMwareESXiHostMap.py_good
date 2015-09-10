@@ -75,6 +75,8 @@ class VMwareESXiHostMap(PythonPlugin):
             hostDict = {}
             hostDict['setOSProductKey'] = host.summary.config.product.fullName
             hostDict['setHWProductKey'] = host.summary.hardware.model
+            hostDict['hwVendor'] = host.summary.hardware.vendor
+            hostDict['memorySize'] = host.summary.hardware.memorySize
             hostDict['cpuMhz'] = long(host.summary.hardware.cpuMhz)
             hostDict['cpuModel'] = host.summary.hardware.cpuModel
             hostDict['numCpuCores'] = int(host.summary.hardware.numCpuCores)
@@ -91,8 +93,10 @@ class VMwareESXiHostMap(PythonPlugin):
 
             log.debug(' hostDict is %s \n' % (hostDict))
 
+        #for k, v in results.iteritems():
+            #print('Host key is %s . Host is %s \n' % (k, v['esxiHostName']))
         print('Host is %s \n' % ( hostDict['esxiHostName']))
-        maps.append(ObjectMap({'totalMemory': host.summary.hardware.memorySize }, compname='hw'))
+        maps.append(ObjectMap({'totalMemory': hostDict['memorySize']}, compname='hw'))
         maps.append(ObjectMap({'totalSwap': 0}, compname='os'))
 
         maps.append(ObjectMap(

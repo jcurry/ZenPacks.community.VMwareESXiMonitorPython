@@ -13,7 +13,6 @@
 
 
 from twisted.internet.defer import inlineCallbacks, returnValue
-from twisted.web.client import getPage
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.form import schema
@@ -25,12 +24,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 from pyVim import connect
 from pyVmomi import vmodl
 from pyVmomi import vim
-import json
-
-#Templates for the command
-vmwareDatastorePerfTemplate = ("/usr/bin/perl ${here/ZenPackManager/packs/ZenPacks.community.VMwareESXiMonitor/path}/libexec/esxi_monitor.pl --server ${dev/manageIp} --username ${dev/zVSphereUsername} --password '${dev/zVSpherePassword}' --options 'datastoreperf:${here/id}' | tail -n1")
-vmwareGuestPerfTemplate = ("/usr/bin/perl ${here/ZenPackManager/packs/ZenPacks.community.VMwareESXiMonitor/path}/libexec/esxi_monitor.pl --server ${dev/manageIp} --username ${dev/zVSphereUsername} --password '${dev/zVSpherePassword}' --options 'guestperf:${here/id}' | tail -n1")
-vmwareHostPerfTemplate = ("/usr/bin/perl ${here/ZenPackManager/packs/ZenPacks.community.VMwareESXiMonitor/path}/libexec/esxi_monitor.pl --server ${dev/manageIp} --username ${dev/zVSphereUsername} --password '${dev/zVSpherePassword}' --options 'hostperf:${dev/esxiHostName}' | tail -n1")
+import atexit
 
 # Setup logging
 import logging
@@ -44,7 +38,7 @@ class VMwareDataSource(PythonDataSource):
     """
     ZENPACKID = 'ZenPacks.community.VMwareESXiMonitorPython'
 
-    #sourcetypes = ('VMwareDataSource',)
+    # Friendly name for your data source type in the drop-down selection
     sourcetypes = ('VMware',)
     sourcetype = sourcetypes[0]
     eventClass = '/Status/VMware'
@@ -53,8 +47,9 @@ class VMwareDataSource(PythonDataSource):
     # Custom fields in the datasource - with default values
     # (which can be overriden in template )
 
-    performanceSource = ''
+    performanceSource = 'VMwareHost'
     instance = ''
+    # cycletime defaults to 300
     cycletime = 300
 
     properties = PythonDataSource._properties + (
@@ -70,11 +65,15 @@ class IVMwareDataSourceInfo(IRRDDataSourceInfo):
 
     performanceSource = schema.TextLine(
         title = _t(u'Performance Source'),
-        group = _t('performanceSource'))
+        group = _t('VMware parameters'))
 
     instance = schema.TextLine(
         title = _t(u'Instance'),
-        group = _t('instance'))
+        group = _t('VMware parameters'))
+
+    cycletime = schema.TextLine(
+        title = _t(u'Cycle Time'),
+        group = _t('cycletime - think hard before you change this!'))
 
 class VMwareDataSourceInfo(RRDDataSourceInfo):
     """ Adapter between IVMwareDataSourceInfo and VMwareDataSource """
@@ -100,14 +99,18 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
 
     @classmethod
     def config_key(cls, datasource, context):
-    # Do we need context.id???
 
+        #return (
+        #context.device().id,
+        #datasource.getCycleTime(context),
+        #datasource.rrdTemplate().id,
+        #datasource.id,
+        #context.id,
+        #'VMwareDataSource',
+        #)
         return (
         context.device().id,
         datasource.getCycleTime(context),
-        datasource.rrdTemplate().id,
-        datasource.id,
-        context.id,
         'VMwareDataSource',
         )
 
@@ -128,7 +131,6 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
 
         # context is the object in question - device or component - component in this case
         params = {}
-        #params['CoreName'] = context.coreName
        
         ps = datasource.talesEval(datasource.performanceSource, context)
         #Original ZP has ONE datasource for both device (ESXiHost) and components (ESXiDatasource & ESXiVM)
@@ -140,43 +142,72 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
 
         params['performanceSource'] = ps
         params['instance'] = datasource.talesEval(datasource.instance, context)
-        #url = 'http://' + deviceName + ':8080/solr/' + context.coreName + '/admin/mbeans?stats=true&cat=' + params['SolrCat'] + '&key=' + params['SolrKey'] + '&ident=true&wt=json'
-        #params['url'] = url
+        params['isMonitored'] = context.monitor
+        params['deviceName'] = deviceName
         log.debug(' params is %s \n' % (params))
         return params
 
     @inlineCallbacks
     def collect(self, config):
 
-        def getData(host, user, password, port, request, log):
+        def getData(host, user, password, port, log):
         # make a connection
             try:
-                conn = connect.SmartConnect(host=host, user=user, pwd=password, port=443)
+                conn = connect.SmartConnect(host=host, user=user, pwd=password, port=port)
                 if not conn:
                     log.warn('Could not connect to host %s \n' % (host))
                 else:
-                    response = conn.RetrieveContent()
-                    #response = json.loads(response)
-                    return response
+                    content = conn.RetrieveContent()
+                    # Get VMs
+                    vm_view = content.viewManager.CreateContainerView(content.rootFolder,
+                                                                      [vim.VirtualMachine],
+                                                                      True)
+                    vms = [vm for vm in vm_view.view]
+                    log.debug(' in getData - vms is %s \n' % (vms))
+                    vm_view.Destroy()
+
+                    # Get datastores
+                    datastore_view = content.viewManager.CreateContainerView(content.rootFolder,
+                                                                        [vim.Datastore],
+                                                                        True)
+                    datastores = [datastore for datastore in datastore_view.view]
+                    log.debug(' in getData - datastores is %s \n' % (datastores))
+                    datastore_view.Destroy()
+
+                    # Get hosts
+                    host_view = content.viewManager.CreateContainerView(content.rootFolder,
+                                                                        [vim.HostSystem],
+                                                                        True)
+                    hosts = [host for host in host_view.view]
+                    log.debug(' in getData - hosts is %s \n' % (hosts))
+                    host_view.Destroy()
+
+                    perfManager = content.perfManager
+
+                    vpm = vim.PerformanceManager
+
+                    return hosts, vms, datastores, perfManager, vpm
             except:
                 log.warn('Failed to get data from host %s\n' % (host))
                 
             # Note: from daemons use a shutdown hook to do this, not the atexit
-            #atexit.register(connect.Disconnect, si)
+            atexit.register(connect.Disconnect, conn)
 
         ds0 = config.datasources[0]
 
         if not ds0.zVSphereUsername:
             log.warn(' No zVSphereUsername set - cannot collect data')
+            returnValue(None)
         if not ds0.zVSpherePassword:
             log.warn(' No zVSpherePassword set - cannot collect data')
-        request = ''
+            returnValue(None)
+        port = 443
         try:
-            s = yield getData(ds0.manageIp, ds0.zVSphereUsername, ds0.zVSpherePassword, 443, request, log)
+            hosts, vms, datastores, perfManager, vpm  = yield getData(ds0.manageIp, ds0.zVSphereUsername, ds0.zVSpherePassword, port, log)
         except Exception, e:
             log.error( "%s: %s", ds0.device, e)
-        #continue
-        returnValue(s)
+            returnValue(None)
+        returnValue({'hosts':hosts, 'vms':vms, 'datastores':datastores, 'perfManager':perfManager, 'vpm': vpm})
 
     def onResult(self, result, config):
         """
@@ -185,7 +216,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         to be used without further processing.
         """
 
-        log.debug( 'result is %s ' % (result))
+        #log.debug( 'result is %s ' % (result))
         return result
 
     def onSuccess(self, result, config):
@@ -229,11 +260,233 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             }
         """
 
-        log.debug( 'In success - result is %s and config is %s ' % (result, config))
+        #log.debug( 'In success - result is %s and config is %s ' % (result, config))
+        vms = result['vms']
+        hosts = result['hosts']
+        datastores = result['datastores']
+        perfManager = result['perfManager']
+        vpm = result['vpm']
+
+        def StatCheck(perf_dict, counter_name):
+            counter_key = perf_dict[counter_name]
+            return counter_key
+
+        def lookupCounterName(perf_dict, counter_key):
+            for k, v in perf_dict.items():
+                if v == counter_key:
+                    return k
+            return 
+
+        def BuildQuery(perfManager, counterId, instance, host, interval):
+            # Note that vim.PerformanceManager.QuerySpec returns a list - albeit of 1 sample with maxSample=1
+            metricId = vpm.MetricId(counterId=counterId, instance=instance)
+            #log.debug(' counterId is %s and host is %s  and metricId is %s \n' % (counterId, host, metricId))
+            query = vpm.QuerySpec(intervalId=interval, entity=host, metricId=[metricId], maxSample=1)
+            perfResults = perfManager.QueryPerf(querySpec=[query])
+            if perfResults:
+                return perfResults
+            else:
+                log.info('ERROR: Performance results empty.  TIP: Check time drift on source and vCenter server')
+                counter_name = lookupCounterName(perf_dict, counterId)
+                log.info('Troubleshooting info: host is %s and counter name is %s \n' % (host.name, counter_name))
+                return
+
+        # Get all the performance counters
+        perf_dict = {}
+        perfList = perfManager.perfCounter
+        for counter in perfList:
+            counter_full = "{}.{}.{}".format(counter.groupInfo.key, counter.nameInfo.key, counter.rollupType)
+            perf_dict[counter_full] = counter.key
+        #print('-------perf Dict --------')
+        #import pprint
+        #pprint.pprint(perf_dict)
+
+        interval = 20
+
+        # Get values for required datapoints into a dictionary
+        # Hosts
+        dataHosts = {}
+        for host in hosts:
+            log.debug('Host is %s name is %s \n' % (host, host.name))
+            # Note that BuildQuery will return a list so need to use sum function
+            statSysUpTime = BuildQuery(perfManager, (StatCheck(perf_dict, 'sys.uptime.latest')), "", host, interval)
+            if statSysUpTime:
+                sysUpTime = float(sum(statSysUpTime[0].value[0].value))
+                dataHosts['sysUpTime'] = sysUpTime
+            statMemUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.usage.minimum')), "", host, interval)
+            if statMemUsage:
+                memUsage = (float(sum(statMemUsage[0].value[0].value)) / 100)
+                dataHosts['memUsage'] = memUsage
+            statMemSwapused = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.swapused.maximum')), "", host, interval)
+            if statMemSwapused:
+                memSwapused = (float(sum(statMemSwapused[0].value[0].value)) * 1024)
+                dataHosts['memSwapused'] = memSwapused
+            statMemGranted = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.granted.maximum')), "", host, interval)
+            if statMemGranted:
+                memGranted = (float(sum(statMemGranted[0].value[0].value)) * 1024)
+                dataHosts['memGranted'] = memGranted
+            statMemActive = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.active.maximum')), "", host, interval)
+            if statMemActive:
+                memActive = (float(sum(statMemActive[0].value[0].value)) * 1024)
+                dataHosts['memActive'] = memActive
+            statDiskUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'disk.usage.average')), "", host, interval)
+            if statDiskUsage:
+                diskUsage = (float(sum(statDiskUsage[0].value[0].value)) * 1024)
+                dataHosts['diskUsage'] = diskUsage
+            statCpuUsageMin = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.minimum')), "", host, interval)
+            if statCpuUsageMin:
+                cpuUsageMin = (float(sum(statCpuUsageMin[0].value[0].value))  / 100)
+                dataHosts['cpuUsageMin'] = cpuUsageMin
+            statCpuUsageMax = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.maximum')), "", host, interval)
+            if statCpuUsageMax:
+                cpuUsageMax = (float(sum(statCpuUsageMax[0].value[0].value))  / 100)
+                dataHosts['cpuUsageMax'] = cpuUsageMax
+            statCpuUsageAvg = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.average')), "", host, interval)
+            if statCpuUsageAvg:
+                cpuUsageAvg = (float(sum(statCpuUsageAvg[0].value[0].value))  / 100)
+                dataHosts['cpuUsageAvg'] = cpuUsageAvg
+            statCpuUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usagemhz.average')), "", host, interval)
+            if statCpuUsage:
+                cpuUsage = (float(sum(statCpuUsage[0].value[0].value))  * 1000000)
+                dataHosts['cpuUsage'] = cpuUsage
+            statCpuReservedcapacity = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.reservedCapacity.average')), "", host, interval)
+            if statCpuReservedcapacity:
+                cpuReservedcapacity = (float(sum(statCpuReservedcapacity[0].value[0].value))  * 1000000)
+                dataHosts['cpuReservedcapacity'] = cpuReservedcapacity
+
+        # Guest VMs
+        dataGuests = {}
+        for vm in vms:
+            log.debug('vm is %s name is %s \n' % (vm, vm.name))
+            # Note that BuildQuery will return a list so need to use sum function
+            dataGuest = {}
+            try:
+                powerState = vm.runtime.powerState
+            except:
+                dataGuest['powerState'] = 'poweredOff'
+                continue                # go to next VM
+            dataGuest['powerState'] = powerState
+            if powerState != 'poweredOn':
+                dataGuest['adminStatus'] = 0
+                dataGuest['operStatus'] = 0
+                if powerState == 'poweredOff':
+                    dataGuest['adminStatus'] = 2
+                elif powerState == 'suspended':
+                    dataGuest['adminStatus'] = 3
+            else:        
+                statMemUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.usage.minimum')), "", vm, interval)
+                if statMemUsage:
+                    memUsage = (float(sum(statMemUsage[0].value[0].value)) / 100 )
+                    dataGuest['memUsage'] = memUsage
+                statMemOverhead = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.overhead.minimum')), "", vm, interval)
+                if statMemOverhead:
+                    memOverhead = (float(sum(statMemOverhead[0].value[0].value)) * 1024 )
+                    dataGuest['memOverhead'] = memOverhead
+                statMemConsumed = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.consumed.minimum')), "", vm, interval)
+                if statMemConsumed:
+                    memConsumed = (float(sum(statMemConsumed[0].value[0].value)) * 1024 )
+                    dataGuest['memConsumed'] = memConsumed
+                statDiskUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'disk.usage.average')), "", vm, interval)
+                if statDiskUsage:
+                    diskUsage = (float(sum(statDiskUsage[0].value[0].value)) * 1024 )
+                    dataGuest['diskUsage'] = diskUsage
+                statCpuUsageMin = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.minimum')), "", vm, interval)
+                if statCpuUsageMin:
+                    cpuUsageMin = (float(sum(statCpuUsageMin[0].value[0].value)) / 100 )
+                    dataGuest['cpuUsageMin'] = cpuUsageMin
+                statCpuUsageMax = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.maximum')), "", vm, interval)
+                if statCpuUsageMax:
+                    cpuUsageMax = (float(sum(statCpuUsageMax[0].value[0].value)) / 100 )
+                    dataGuest['cpuUsageMax'] = cpuUsageMax
+                statCpuUsageAvg = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.average')), "", vm, interval)
+                if statCpuUsageAvg:
+                    cpuUsageAvg = (float(sum(statCpuUsageAvg[0].value[0].value)) / 100 )
+                    dataGuest['cpuUsageAvg'] = cpuUsageAvg
+                statCpuUsage= BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usagemhz.average')), "", vm, interval)
+                if statCpuUsage:
+                    cpuUsage = (float(sum(statCpuUsage[0].value[0].value)) * 1000000 )
+                    dataGuest['cpuUsage'] = cpuUsage
+                overallStatus = vm.summary.overallStatus
+                operStatus = 0
+                if overallStatus == 'green':
+                    operStatus = 1
+                elif overallStatus == 'red':
+                    operStatus = 2
+                elif overallStatus == 'yellow':
+                    operStatus = 3
+                elif overallStatus == 'gray':
+                    operStatus = 4
+                dataGuest['overallStatus'] = overallStatus
+                dataGuest['operStatus'] = operStatus
+                dataGuest['adminStatus'] = 1
+            dataGuests[vm.name] = dataGuest    
+
+        # Datastores
+        dataDatastores = {}
+        for datastore in datastores:
+            log.debug('datastore is %s name is %s \n' % (datastore, datastore.name))
+            # Note that BuildQuery will return a list so need to use sum function
+            dataDatastore = {}
+            if datastore.summary.accessible:
+                dataDatastore['diskFreeSpace'] = datastore.summary.freeSpace
+                dataDatastore['connectionStatus'] = 1
+            else:    
+                dataDatastore['diskFreeSpace'] = None
+                dataDatastore['connectionStatus'] = 2
+            dataDatastores[datastore.name] = dataDatastore
+
+        #log.debug(' dataHosts is %s \n' % (dataHosts))
+        #log.debug(' dataGuests is %s \n' % (dataGuests))
+        #log.debug(' dataDatastores is %s \n' % (dataDatastores))
+
         data = self.new_data()
         ds0 = config.datasources[0]
         for ds in config.datasources:
-            log.debug('test')
+            #log.debug('ds is %s and hosts is %s and vms is %s and datastores is %s \n' % (ds, hosts, vms, datastores))
+            #log.debug(' Datasource is %s and datasource.component is %s and datasource.template is %s and params is %s and plugin is %s \n' % (ds.datasource, ds.component, ds.template, ds.params, ds.plugin_classname))
+            if ds.params['performanceSource'] == 'VMwareHost':
+
+                for datapoint_id in (x.id for x in ds.points):
+                    if not dataHosts.has_key(datapoint_id):
+                        continue
+                    try:
+                        value = dataHosts[datapoint_id]
+                    except Exception, e:
+                        log.error('Failed to get value datapoint for ESXi host, error is %s' % (e))
+                        continue
+                    dpname = '_'.join((ds.datasource, datapoint_id))
+                    data['values'][ds.component][dpname] = (value, 'N')
+
+            elif ds.params['performanceSource'] == 'VMwareGuest':
+                if ds.params['isMonitored']:
+                    for vm, vmdata in dataGuests.iteritems():
+                        if vm == ds.component:
+                            for datapoint_id in (x.id for x in ds.points):
+                                if not vmdata.has_key(datapoint_id):
+                                    continue
+                                try:
+                                    value = vmdata[datapoint_id]
+                                except Exception, e:
+                                    log.error('Failed to get value datapoint for ESXi guest, error is %s' % (e))
+                                    continue
+                                dpname = '_'.join((ds.datasource, datapoint_id))
+                                data['values'][ds.component][dpname] = (value, 'N')
+
+
+            elif ds.params['performanceSource'] == 'VMwareDatastore':
+                if ds.params['isMonitored']:
+                    for datastore, datastoredata in dataDatastores.iteritems():
+                        if datastore == ds.component:
+                            for datapoint_id in (x.id for x in ds.points):
+                                if not datastoredata.has_key(datapoint_id):
+                                    continue
+                                try:
+                                    value = datastoredata[datapoint_id]
+                                except Exception, e:
+                                    log.error('Failed to get value datapoint for ESXi datastore, error is %s' % (e))
+                                    continue
+                                dpname = '_'.join((ds.datasource, datapoint_id))
+                                data['values'][ds.component][dpname] = (value, 'N')
         return data
 
 
@@ -247,250 +500,18 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         log.debug( 'In OnError - result is %s and config is %s ' % (result, config))
         return {
             'events': [{
-                'summary': 'Error getting Solrdata with zenpython: %s' % result,
-                'eventKey': 'Solr',
+                'summary': 'Error getting ESXi with zenpython: %s' % result,
+                'eventKey': 'VMware ESXi',
                 'severity': 4,
                 }],
             }
 
-        def onComplete(self, result, config):
-            """
-            Called last for success and error.
-            You can omit this method if you want the result of either the
-            onSuccess or onError method to be used without further processing.
-            """
-            return result
+    def onComplete(self, result, config):
+        """
+        Called last for success and error.
+        You can omit this method if you want the result of either the
+        onSuccess or onError method to be used without further processing.
+        """
+        return result
 
 
-"""
-
-    #properties which are used in the edit datasource
-    _properties = RRDDataSource.RRDDataSource._properties + (
-        {'id':'performanceSource', 'type':'string', 'mode':'w'},
-        {'id':'instance', 'type':'string', 'mode':'w'},
-    )
-
-    _relations = RRDDataSource.RRDDataSource._relations + (
-    )
-
-    # Screen action bindings (and tab definitions)
-    factory_type_information = (
-        {
-            'immediate_view': 'editVMwareDataSource',
-            'actions': (
-                {
-                    'id': 'edit',
-                    'name': 'Data Source',
-                    'action': 'editVMwareDataSource',
-                    'permissions': ('View',)
-                },
-            )
-        },
-    )
-
-    security = ClassSecurityInfo()
-
-    def getDescription(self):
-        return self.instance
-
-    #this tells zenoss that the datasource uses zencommand to collect the data
-    def useZenCommand(self):
-        #return True
-        return False
-
-    #this method add's datapoints depending on what the the datasource's name is
-    #not necessarily needed but I like to be lazy
-    def addDataPoints(self):
-        datastore = ['diskFreeSpace','connectionStatus']
-        guest = ['memUsage','memOverhead','memConsumed','diskUsage','cpuUsageMin','cpuUsageMax','cpuUsageAvg','cpuUsage','adminStatus','operStatus']
-        host = ['sysUpTime','memUsage','memSwapused','memGranted','memActive','diskUsage','cpuUsageMin','cpuUsageMax','cpuUsageAvg','cpuUsage','cpuReservedcapacity','netReceived','netTransmitted','netPacketsRx','netPacketsTx','netDroppedRx','netDroppedTx']
-
-        if self.id == "VMwareDatastore":
-            self.performanceSource = "VMwareDatastore"
-            for dp in datastore:
-                dpid = self.prepId(dp)
-                if not self.datapoints._getOb(dpid, None):
-                    self.datapoints.manage_addRRDDataPoint(dpid)
-        elif self.id == "VMwareGuest":
-            self.performanceSource = "VMwareGuest"
-            for dp in guest:
-                dpid = self.prepId(dp)
-                if not self.datapoints._getOb(dpid, None):
-                    self.datapoints.manage_addRRDDataPoint(dpid)
-        elif self.id == "VMwareHost":
-            self.performanceSource = "VMwareHost"
-            for dp in host:
-                dpid = self.prepId(dp)
-                if not self.datapoints._getOb(dpid, None):
-                    self.datapoints.manage_addRRDDataPoint(dpid)
-
-    #this method is called after the datasource is created and also when you click edit
-    #datasource I believe
-    def zmanage_editProperties(self, REQUEST=None):
-        'add some validation'
-        if REQUEST:
-            self.performanceSource = REQUEST.get('performanceSource', '')
-            self.instance = REQUEST.get('instance', '')
-        return RRDDataSource.SimpleRRDDataSource.zmanage_editProperties(self, REQUEST)
-
-        self.addDataPoints()
-
-        if REQUEST and self.dataPoints():
-            datapoints = self.dataPoints()
-            for datapoint in datapoints:
-                if REQUEST.has_key('rrdtype'):
-                    if REQUEST['rrdtype'] in datapoint.rrdtypes:
-                        datapoint.rrdtype = REQUEST['rrdtype']
-                    else:
-                        messaging.IMessageSender(self).sendToBrowser(
-                            'Error',
-                            "%s is an invalid Type" % rrdtype,
-                            priority=messaging.WARNING
-                        )
-                        return self.callZenScreen(REQUEST)
-
-                if REQUEST.has_key('rrdmin'):
-                    value = REQUEST['rrdmin']
-                    if value != '':
-                        try:
-                            value = long(value)
-                        except ValueError:
-                            messaging.IMessageSender(self).sendToBrowser(
-                                'Error',
-                                "%s is an invalid RRD Min" % value,
-                                priority=messaging.WARNING
-                            )
-                            return self.callZenScreen(REQUEST)
-                    datapoint.rrdmin = value
-
-                if REQUEST.has_key('rrdmax'):
-                    value = REQUEST['rrdmax']
-                    if value != '':
-                        try:
-                            value = long(value)
-                        except ValueError:
-                            messaging.IMessageSender(self).sendToBrowser(
-                                'Error',
-                                "%s is an invalid RRD Max" % value,
-                                priority=messaging.WARNING
-                            )
-                            return self.callZenScreen(REQUEST)
-                    datapoint.rrdmax = value
-
-                if REQUEST.has_key('createCmd'):
-                    datapoint.createCmd = REQUEST['createCmd']
-
-    #this method gets the command that will be run with zencommand    
-    def getCommand(self, context):
-        if self.performanceSource == "VMwareDatastore":
-            cmd = vmwareDatastorePerfTemplate
-        elif self.performanceSource == "VMwareGuest":
-            cmd = vmwareGuestPerfTemplate
-        elif self.performanceSource == "VMwareHost":
-            cmd = vmwareHostPerfTemplate
-        cmd = RRDDataSource.RRDDataSource.getCommand(self, context, cmd)
-        return cmd
-
-    #this method is used to test the datasource in the edit datasource window
-    def testDataSourceAgainstDevice(self, testDevice, REQUEST, write, errorLog):
-        out = REQUEST.RESPONSE
-        # Determine which device to execute against
-        device = None
-        if testDevice:
-            # Try to get specified device
-            device = self.findDevice(testDevice)
-            if not device:
-                errorLog(
-                    'No device found',
-                    'Cannot find device matching %s' % testDevice,
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
-        elif hasattr(self, 'device'):
-            # ds defined on a device, use that device
-            device = self.device()
-        elif hasattr(self, 'getSubDevicesGen'):
-            # ds defined on a device class, use any device from the class
-            try:
-                device = self.getSubDevicesGen().next()
-            except StopIteration:
-                # No devices in this class, bail out
-                pass
-        if not device:
-            errorLog(
-                'No Testable Device',
-                'Cannot determine a device to test against.',
-                priority=messaging.WARNING
-            )
-            return self.callZenScreen(REQUEST)
-
-        header = ''
-        footer = ''
-        # Render
-        if REQUEST.get('renderTemplate',True):
-            header, footer = self.commandTestOutput().split('OUTPUT_TOKEN')
-
-        out.write(str(header))
-
-        # Get the command to run
-        command = None
-        if self.sourcetype=='VMware':
-            command = self.getCommand(device)
-        else:
-            errorLog(
-                'Test Failure',
-                'Unable to test %s datasources' % self.sourcetype,
-                priority=messaging.WARNING
-            )
-            return self.callZenScreen(REQUEST)
-        if not command:
-            errorLog(
-                'Test Failure',
-                'Unable to create test command.',
-                priority=messaging.WARNING
-            )
-            return self.callZenScreen(REQUEST)
-
-        write('Executing command %s against %s' %(command, device.id))
-        write('')
-        start = time.time()
-        try:
-            executeStreamCommand(command, write)
-        except:
-            import sys
-            write('exception while executing command')
-            write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))
-        write('')
-        write('')
-        write('DONE in %s seconds' % long(time.time() - start))
-        out.write(str(footer))
-
-    security.declareProtected('Change Device', 'manage_testDataSource')
-
-    def manage_testDataSource(self, testDevice, REQUEST):
-        ''' Test the datasource by executing the command and outputting the
-        non-quiet results.
-        '''
-        # set up the output method for our test
-        out = REQUEST.RESPONSE
-        def write(lines):
-            ''' Output (maybe partial) result text.
-            '''
-            # Looks like firefox renders progressive output more smoothly
-            # if each line is stuck into a table row.
-            startLine = '<tr><td class="tablevalues">'
-            endLine = '</td></tr>\n'
-            if out:
-                if not isinstance(lines, list):
-                    lines = [lines]
-                for l in lines:
-                    if not isinstance(l, str):
-                        l = str(l)
-                    l = l.strip()
-                    l = cgi.escape(l)
-                    l = l.replace('\n', endLine + startLine)
-                    out.write(startLine + l + endLine)
-
-        errorLog = messaging.IMessageSender(self).sendToBrowser
-        return self.testDataSourceAgainstDevice(testDevice, REQUEST, write, errorLog)
-"""

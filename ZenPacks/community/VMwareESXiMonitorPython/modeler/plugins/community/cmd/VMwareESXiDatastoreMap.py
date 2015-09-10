@@ -10,9 +10,9 @@
 #
 ################################################################################
 
-__doc__ = """VMwareESXiHostMap
+__doc__ = """VMwareESXiDatastoreMap
 
-VMwareESXiHostMap gathers ESXi Host information.
+VMwareESXiDatastoreMap gathers ESXi Datastore information.
 
 """
 
@@ -21,7 +21,7 @@ from pyVmomi import vim
 import atexit
 from twisted.internet.defer import returnValue, inlineCallbacks
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
-from Products.DataCollector.plugins.DataMaps import ObjectMap
+from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
 
 def getData(host, username, password, port, log):
     
@@ -32,17 +32,17 @@ def getData(host, username, password, port, log):
                                    port=port)
     atexit.register(Disconnect, serviceInstance)
     content = serviceInstance.RetrieveContent()
-    host_view = content.viewManager.CreateContainerView(content.rootFolder,
-                                                        [vim.HostSystem],
+    datastore_view = content.viewManager.CreateContainerView(content.rootFolder,
+                                                        [vim.Datastore],
                                                         True)
-    hosts = [host for host in host_view.view]
-    log.debug(' in getData - hosts is %s \n' % (hosts))
-    host_view.Destroy()
+    datastores = [datastore for datastore in datastore_view.view]
+    log.debug(' in getData - datastores is %s \n' % (datastores))
+    datastore_view.Destroy()
 
-    return hosts
+    return datastores
 
 
-class VMwareESXiHostMap(PythonPlugin):
+class VMwareESXiDatastoreMap(PythonPlugin):
     deviceProperties = PythonPlugin.deviceProperties + (
         'zVSphereUsername',
         'zVSpherePassword'
@@ -67,37 +67,29 @@ class VMwareESXiHostMap(PythonPlugin):
         returnValue(s)
 
     def process(self, device, results, log):
-        #log.debug(' Start of process - results is %s \n' % (results))
+        log.debug(' Start of process - results is %s \n' % (results))
         maps = []
+        datastores = []
 
-        for host in results:
-            # Don't actually see there being more than one host.....
-            hostDict = {}
-            hostDict['setOSProductKey'] = host.summary.config.product.fullName
-            hostDict['setHWProductKey'] = host.summary.hardware.model
-            hostDict['cpuMhz'] = long(host.summary.hardware.cpuMhz)
-            hostDict['cpuModel'] = host.summary.hardware.cpuModel
-            hostDict['numCpuCores'] = int(host.summary.hardware.numCpuCores)
-            hostDict['numCpuPkgs'] = int(host.summary.hardware.numCpuPkgs)
-            hostDict['numCpuCoresPerPkgs'] = hostDict['numCpuCores'] / hostDict['numCpuPkgs']
-            hostDict['numCpuThreads'] = int(host.summary.hardware.numCpuThreads)
-            hostDict['numNics'] = int(host.summary.hardware.numNics)
-            hostDict['esxiHostName'] = host.summary.config.name
-            vmotionState = host.summary.config.vmotionEnabled
-            if vmotionState == 0:
-                hostDict['vmotionState'] = True
-            else:
-                hostDict['vmotionState'] = False
+        for datastore in results:
+            datastoreDict = {}
+            datastoreDict['id'] = self.prepId(datastore.summary.name)
+            datastoreDict['title'] = datastore.summary.name
+            datastoreDict['type'] = datastore.summary.type
+            datastoreDict['capacity'] = long(datastore.summary.capacity)
+            #datastoreDict['accessible'] = datastore.summary.accessible
+            if not int(datastore.summary.accessible) == 1:
+                log.warning('Datastore %s of device %s is not accessible' % (datastoreDict['id'], device.id))
+                continue
 
-            log.debug(' hostDict is %s \n' % (hostDict))
+            datastores.append(ObjectMap(data=datastoreDict))
+            log.debug(' datastoreDict is %s \n' % (datastoreDict))
+            print('VM Datastore is %s \n' % ( datastoreDict['id']))
 
-        print('Host is %s \n' % ( hostDict['esxiHostName']))
-        maps.append(ObjectMap({'totalMemory': host.summary.hardware.memorySize }, compname='hw'))
-        maps.append(ObjectMap({'totalSwap': 0}, compname='os'))
-
-        maps.append(ObjectMap(
-            modname = 'ZenPacks.community.VMwareESXiMonitorPython.ESXiHost',
-            data = hostDict ))
+            maps.append(RelationshipMap(
+                relname = 'esxiDatastore',
+                modname = 'ZenPacks.community.VMwareESXiMonitorPython.ESXiDatastore',
+                objmaps = datastores ))
 
         return maps
 

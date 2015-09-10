@@ -101,7 +101,7 @@ Ext.apply(Zenoss.render, {
 	}
 	return result;
     },
-   operStatus: function(n) {
+   operStatus: function(n, meta, record) {
 	var adminStatus = record.data.adminStatus;
 	var tpl = new Ext.Template(
 	    '<img border="0" src="img/{color}_dot.png"',

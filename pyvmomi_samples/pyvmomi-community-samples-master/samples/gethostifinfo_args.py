@@ -90,9 +90,6 @@ def BuildQuery(perfManager, vchtime, counterId, instance, host, interval):
 def main():
     global content, hosts, hostPgDict
     host, user, password = GetArgs()
-    #host = '10.0.0.125'
-    #user = 'jane'
-    #password = 'notthis'
     serviceInstance = SmartConnect(host=host,
                                    user=user,
                                    pwd=password,

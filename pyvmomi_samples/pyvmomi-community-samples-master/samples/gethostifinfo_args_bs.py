@@ -55,44 +55,10 @@ def GetArgs():
         host, user, password = sys.argv[1:]
     return host, user, password
 
-def StatCheck(perf_dict, counter_name):
-    counter_key = perf_dict[counter_name]
-    return counter_key
-
-def BuildQuery(perfManager, vchtime, counterId, instance, host, interval):
-    #perfManager = content.perfManager
-    metricId = vim.PerformanceManager.MetricId(counterId=counterId, instance=instance)
-    #print(' counterId is %s and host is %s  and metricId is %s \n' % (counterId, host, metricId))
-
-    startTime = vchtime - datetime.timedelta(minutes=(interval + 1))
-    endTime = vchtime - datetime.timedelta(minutes=1)
-
-    print('starttime is %s, endtime is %s, interval is %s \n' % (startTime, endTime, interval))
-
-    if interval != 0:
-        query = vim.PerformanceManager.QuerySpec(intervalId=interval, entity=host, metricId=[metricId], startTime=startTime, endTime=endTime)
-    else:
-        startTime = datetime.datetime.now() - datetime.timedelta(minutes=1)
-        endTime = datetime.datetime.now()
-        query = vim.PerformanceManager.QuerySpec(entity=host, metricId=[metricId], startTime=startTime, endTime=endTime)
-    perfResults = perfManager.QueryPerf(querySpec=[query])
-    if perfResults:
-        return perfResults
-    else:
-        print('ERROR: Performance results empty.  TIP: Check time drift on source and vCenter server')
-        print('Troubleshooting info:')
-        print('vCenter/host date and time: {}'.format(vchtime))
-        print('Start perf counter time   :  {}'.format(startTime))
-        print('End perf counter time     :  {}'.format(endTime))
-        print(query)
-        exit()
 
 def main():
     global content, hosts, hostPgDict
     host, user, password = GetArgs()
-    #host = '10.0.0.125'
-    #user = 'jane'
-    #password = 'notthis'
     serviceInstance = SmartConnect(host=host,
                                    user=user,
                                    pwd=password,
@@ -104,75 +70,37 @@ def main():
     perfManager = content.perfManager
     vchtime = serviceInstance.CurrentTime()
 
-   # Get all the performance counters
-    perf_dict = {}
-    perfList = content.perfManager.perfCounter
-    for counter in perfList:
-        counter_full = "{}.{}.{}".format(counter.groupInfo.key, counter.nameInfo.key, counter.rollupType)
-        perf_dict[counter_full] = counter.key
-    #print( 'perf_dict is %s \n\n' % (perf_dict))
-    #print('-------perf Dict --------')
-    #pprint.pprint(perf_dict)
-
-    interval = 20
     print('Hosts is %s \n ' % (hosts))
     for host in hosts:
         print('Host is %s \n' % (host))
-
-
-
-        """
-        statInt = interval * 3  # There are 3 20s samples in each minute
-        statSysUpTime = BuildQuery(perfManager, vchtime, (StatCheck(perf_dict, 'sys.uptime.latest')), "", host, interval)
-        #statSysUpTime = BuildQuery(perfManager, vchtime, (StatCheck(perf_dict, 'sys.uptime.latest')), "", host, 0)
-        sysUpTime = (float(sum(statSysUpTime[0].value[0].value)) / statInt) 
-        #sysUpTime = float(sum(statSysUpTime[0].value[0].value))
-        print(' sysUpTime is %s \n' % (sysUpTime))
-
-        statCpuUsage = BuildQuery(perfManager, vchtime, (StatCheck(perf_dict, 'cpu.usage.average')), "", host, interval)
-        cpuUsage = ((float(sum(statCpuUsage[0].value[0].value)) / statInt) / 100)
-        print(' cpuUsage is %s \n' % (cpuUsage))
-
-        statMemoryActive = BuildQuery(perfManager, vchtime, (StatCheck(perf_dict, 'mem.active.average')), "", host, interval)
-        MemoryActive = ((float(sum(statMemoryActive[0].value[0].value)) / statInt) / 100)
-        print(' MemoryActive is %s \n' % (MemoryActive))
-        
-        """
 
         print(' -------- Start of config stuff ---------- \n')
         #print('nw vnic test is %s \n' % (host.config.network.vnic))
         for v in host.config.network.vnic:
             print('vnic is %s \n' % (v))
+            print('vnic spec is %s \n' % (v.spec))
             print('vnic device is %s \n' % (v.device))
-            print('vnic mac is %s \n' % (v.mac))
+            print('vnic description is %s \n' % (v.portgroup))
+            print('vnic mac is %s \n' % (v.spec.mac))
             print('vnic mtu is %s \n' % (v.spec.mtu))
+            if v.spec.ip:
+                print('Address is %s \n' % (v.spec.ip.ipAddress))
         for p in host.config.network.pnic:
             print('pnic is %s \n' % (p))
             print('pnic device is %s \n' % (p.device))
             print('pnic mac is %s \n' % (p.mac))
-            #print('pnic ipAddress is %s \n' % (p.spec.ip.ipAddress))
             print('pnic spec is %s \n' % (p.spec))
             if p.spec.ip:
                 print('pnic ip is %s \n' % (p.spec.ip))
                 print('Address is %s \n' % (p.spec.ip.ipAddress))
 
-            print('pnic linkSpeed is %s \n' % (p.linkSpeed))
+            if p.linkSpeed:
+                print('pnic linkSpeed is %s \n' % (p.linkSpeed))
+                print('pnic linkSpeed speed is is %s \n' % (p.linkSpeed.speedMb))
+                print('pnic linkSpeed duplex is is %s \n' % (p.linkSpeed.duplex))
         #print('nw pnic test is %s \n' % (host.config.network.pnic.spec))
         #print('nw pnic test is %s \n' % (host.config.network.pnic.mac))
         #print('nw pnic test is %s \n' % (host.config.network.pnic.device))
-        #print('osVendor is %s \n' % (host.summary.config.product.vendor))
-        #print('osProduct is %s \n' % (host.summary.config.product.fullName))
-        #print('hwVendor is %s \n' % (host.summary.hardware.vendor))
-        #print('hwProduct is %s \n' % (host.summary.hardware.model))
-        #print('memorySize is %s \n' % (host.summary.hardware.memorySize))
-        #print('cpuMhz is %s \n' % (host.summary.hardware.cpuMhz))
-        #print('cpuModel is %s \n' % (host.summary.hardware.cpuModel))
-        #print('numCpuCores is %s \n' % (host.summary.hardware.numCpuCores))
-        #print('numCpuPkgs is %s \n' % (host.summary.hardware.numCpuPkgs))
-        #print('numCpuThreads is %s \n' % (host.summary.hardware.numCpuThreads))
-        #print('numNics is %s \n' % (host.summary.hardware.numNics))
-        #print('esxiHostName is %s \n' % (host.summary.config.name))
-        #print('vmotionState is %s \n' % (host.summary.config.vmotionEnabled))
         print(' -------- End of config stuff ---------- \n')
         
 

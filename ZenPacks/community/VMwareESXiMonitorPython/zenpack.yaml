@@ -107,49 +107,49 @@ device_classes:
               netTransmitted: {}
               sysUpTime: {}
         graphs:
+          Raw CPU Usage:
+            units: Hz
+            graphpoints:
+              cpuUsage:
+                dpName: VMwareHost_cpuUsage
+                legend: CPU Usage
+              cpuReservedcapacity:
+                dpName: VMwareHost_cpuReservedcapacity
+                legend: CPU Reserved Capacity
           CPU Usage:
             units: percent
             miny: 0
             maxy: 100
             graphpoints:
-              cpuUsageAvg:
-                dpName: VMwareHost_cpuUsageAvg
-                lineType: AREA
-                format: '%5.2lf%%'
-                legend: CPU Usage (Average)
-              cpuUsageMax:
-                dpName: VMwareHost_cpuUsageMax
-                lineType: AREA
-                format: '%5.2lf%%'
-                legend: CPU Usage (Max)
-                includeThresholds: true
               cpuUsageMin:
                 dpName: VMwareHost_cpuUsageMin
                 lineType: AREA
                 format: '%5.2lf%%'
                 legend: CPU Usage (Min)
                 includeThresholds: true
-          Disk Usage:
-            units: bytes/sec
+              cpuUsageMax:
+                dpName: VMwareHost_cpuUsageMax
+                lineType: AREA
+                format: '%5.2lf%%'
+                legend: CPU Usage (Max)
+                includeThresholds: true
+              cpuUsageAvg:
+                dpName: VMwareHost_cpuUsageAvg
+                lineType: AREA
+                format: '%5.2lf%%'
+                legend: CPU Usage (Average)
+          Raw Memory Usage:
+            units: bytes
             base: true
             graphpoints:
-              diskUsage:
-                dpName: VMwareHost_diskUsage
+              memGranted:
+                dpName: VMwareHost_memGranted
                 lineType: AREA
-                legend: Disk Usage
-          Errors:
-            units: packets
-            miny: 0
-            graphpoints:
-              netDroppedRx:
-                dpName: VMwareHost_netDroppedRx
+                legend: Granted Memory
+              memActive:
+                dpName: VMwareHost_memActive
                 lineType: AREA
-                legend: Receive
-                includeThresholds: true
-              netDroppedTx:
-                dpName: VMwareHost_netDroppedTx
-                legend: Send
-                includeThresholds: true
+                legend: Active Memory
           Memory Usage:
             units: percent
             miny: 0
@@ -161,38 +161,14 @@ device_classes:
                 format: '%5.2lf%%'
                 legend: Memory Usage
                 includeThresholds: true
-          Packets:
-            units: packets/sec
-            miny: 0
-            graphpoints:
-              netPacketsRx:
-                dpName: VMwareHost_netPacketsRx
-                lineType: AREA
-                legend: Inbound
-              netPacketsTx:
-                dpName: VMwareHost_netPacketsTx
-                legend: Outbound
-          Raw CPU Usage:
-            units: Hz
-            graphpoints:
-              cpuReservedcapacity:
-                dpName: VMwareHost_cpuReservedcapacity
-                legend: CPU Reserved Capacity
-              cpuUsage:
-                dpName: VMwareHost_cpuUsage
-                legend: CPU Usage
-          Raw Memory Usage:
-            units: bytes
+          Disk Usage:
+            units: bytes/sec
             base: true
             graphpoints:
-              memActive:
-                dpName: VMwareHost_memActive
+              diskUsage:
+                dpName: VMwareHost_diskUsage
                 lineType: AREA
-                legend: Active Memory
-              memGranted:
-                dpName: VMwareHost_memGranted
-                lineType: AREA
-                legend: Granted Memory
+                legend: Disk Usage
           Swap:
             units: bytes
             base: true
@@ -212,6 +188,30 @@ device_classes:
               netTransmitted:
                 dpName: VMwareHost_netTransmitted
                 legend: Outbound
+          Packets:
+            units: packets/sec
+            miny: 0
+            graphpoints:
+              netPacketsRx:
+                dpName: VMwareHost_netPacketsRx
+                lineType: AREA
+                legend: Inbound
+              netPacketsTx:
+                dpName: VMwareHost_netPacketsTx
+                legend: Outbound
+          Errors:
+            units: packets
+            miny: 0
+            graphpoints:
+              netDroppedRx:
+                dpName: VMwareHost_netDroppedRx
+                lineType: AREA
+                legend: Receive
+                includeThresholds: true
+              netDroppedTx:
+                dpName: VMwareHost_netDroppedTx
+                legend: Send
+                includeThresholds: true
       ESXiVM:
         description: ''
         targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiVM
@@ -256,36 +256,34 @@ device_classes:
                 rrdmin: 0
                 rrdmax: 4
         graphs:
+          Raw CPU Usage:
+            units: Hz
+            graphpoints:
+              cpuUsage:
+                dpName: VMwareGuest_cpuUsage
+                legend: CPU Usage
           CPU Usage:
             units: percent
             miny: 0
             maxy: 100
             graphpoints:
-              cpuUsageAvg:
-                dpName: VMwareGuest_cpuUsageAvg
-                lineType: AREA
-                format: '%5.2lf%%'
-                legend: CPU Usage (Average)
-              cpuUsageMax:
-                dpName: VMwareGuest_cpuUsageMax
-                lineType: AREA
-                format: '%5.2lf%%'
-                legend: CPU Usage (Max)
-                includeThresholds: true
               cpuUsageMin:
                 dpName: VMwareGuest_cpuUsageMin
                 lineType: AREA
                 format: '%5.2lf%%'
                 legend: CPU Usage (Min)
                 includeThresholds: true
-          Disk Usage:
-            units: bytes/sec
-            base: true
-            graphpoints:
-              diskUsage:
-                dpName: VMwareGuest_diskUsage
+              cpuUsageMax:
+                dpName: VMwareGuest_cpuUsageMax
                 lineType: AREA
-                legend: Disk Usage
+                format: '%5.2lf%%'
+                legend: CPU Usage (Max)
+                includeThresholds: true
+              cpuUsageAvg:
+                dpName: VMwareGuest_cpuUsageAvg
+                lineType: AREA
+                format: '%5.2lf%%'
+                legend: CPU Usage (Average)
           Memory Usage:
             units: percent
             miny: 0
@@ -297,25 +295,27 @@ device_classes:
                 format: '%5.2lf%%'
                 legend: Memory Usage
                 includeThresholds: true
-          Raw CPU Usage:
-            units: Hz
-            graphpoints:
-              cpuUsage:
-                dpName: VMwareGuest_cpuUsage
-                legend: CPU Usage
           Raw Host Memory Usage:
             units: bytes
             graphpoints:
-              memConsumed:
-                dpName: VMwareGuest_memConsumed
-                lineType: AREA
-                stacked: true
-                legend: Host Memory Consumed
               memOverhead:
                 dpName: VMwareGuest_memOverhead
                 lineType: AREA
                 stacked: true
                 legend: Overhead Memory
+              memConsumed:
+                dpName: VMwareGuest_memConsumed
+                lineType: AREA
+                stacked: true
+                legend: Host Memory Consumed
+          Disk Usage:
+            units: bytes/sec
+            base: true
+            graphpoints:
+              diskUsage:
+                dpName: VMwareGuest_diskUsage
+                lineType: AREA
+                legend: Disk Usage
 
 classes:
   DEFAULTS:

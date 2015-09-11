@@ -353,30 +353,6 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             if statCpuReservedcapacity:
                 cpuReservedcapacity = (float(sum(statCpuReservedcapacity[0].value[0].value))  * 1000000)
                 dataHosts['cpuReservedcapacity'] = cpuReservedcapacity
-            statNetReceived = BuildQuery(perfManager, (StatCheck(perf_dict, 'net.received.average')), "", host, interval)
-            if statNetReceived:
-                netReceived = (float(sum(statNetReceived[0].value[0].value))  * 8192)
-                dataHosts['netReceived'] = netReceived
-            statNetTransmitted= BuildQuery(perfManager, (StatCheck(perf_dict, 'net.transmitted.average')), "", host, interval)
-            if statNetTransmitted:
-                netTransmitted = (float(sum(statNetTransmitted[0].value[0].value))  * 8192)
-                dataHosts['netTransmitted'] = netTransmitted
-            statNetPacketsRx = BuildQuery(perfManager, (StatCheck(perf_dict, 'net.packetsRx.summation')), "", host, interval)
-            if statNetPacketsRx:
-                netPacketsRx = float(sum(statNetPacketsRx[0].value[0].value))
-                dataHosts['netPacketsRx'] = netPacketsRx
-            statNetPacketsTx = BuildQuery(perfManager, (StatCheck(perf_dict, 'net.packetsTx.summation')), "", host, interval)
-            if statNetPacketsTx:
-                netPacketsTx = float(sum(statNetPacketsTx[0].value[0].value))
-                dataHosts['netPacketsTx'] = netPacketsTx
-            statNetDroppedRx = BuildQuery(perfManager, (StatCheck(perf_dict, 'net.droppedRx.summation')), "", host, interval)
-            if statNetDroppedRx:
-                netDroppedRx = float(sum(statNetDroppedRx[0].value[0].value))
-                dataHosts['netDroppedRx'] = netDroppedRx
-            statNetDroppedTx = BuildQuery(perfManager, (StatCheck(perf_dict, 'net.droppedTx.summation')), "", host, interval)
-            if statNetDroppedTx:
-                netDroppedTx = float(sum(statNetDroppedTx[0].value[0].value))
-                dataHosts['netDroppedTx'] = netDroppedTx
 
         # Guest VMs
         dataGuests = {}

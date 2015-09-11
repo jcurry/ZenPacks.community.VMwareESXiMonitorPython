@@ -320,6 +320,7 @@ device_classes:
 classes:
   DEFAULTS:
     base: [zenpacklib.Component]
+    #base: [NestedComponent]
 
   ESXiHost:
     base: [zenpacklib.Device]

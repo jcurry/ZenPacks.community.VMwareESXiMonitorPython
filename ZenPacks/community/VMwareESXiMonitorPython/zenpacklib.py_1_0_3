@@ -897,9 +897,7 @@ class ComponentBase(ModelBase):
             json.loads(original)
         except ValueError:
             # Zenoss 4 and earlier return a string that starts with "Devices/"
-            #JC - revert back to rrd directories having a component_relationship subdir
-            #return os.path.join('Devices', self.device().id, self.id)
-            return original
+            return os.path.join('Devices', self.device().id, self.id)
         else:
             return original
 

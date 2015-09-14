@@ -39,6 +39,7 @@ class VMwareDataSource(PythonDataSource):
     ZENPACKID = 'ZenPacks.community.VMwareESXiMonitorPython'
 
     # Friendly name for your data source type in the drop-down selection
+    #sourcetypes = ('VMwareDataSource',)
     sourcetypes = ('VMware',)
     sourcetype = sourcetypes[0]
     eventClass = '/Status/VMware'

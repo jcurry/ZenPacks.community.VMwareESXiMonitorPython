@@ -3750,16 +3750,25 @@ class RRDDatasourceSpec(Spec):
     def create(self, templatespec, template):
         datasource_types = dict(template.getDataSourceOptions())
 
+        self.speclog.info("datsource is %s \n" % (self.sourcetype))
         if not self.sourcetype:
             raise ValueError('No type for %s/%s. Valid types: %s' % (
                              template.id, self.name, ', '.join(datasource_types)))
 
         type_ = datasource_types.get(self.sourcetype)
+        self.speclog.info("datsource typeis %s \n" % (type_))
         if not type_:
             raise ValueError("%s is an invalid datasource type. Valid types: %s" % (
                              self.sourcetype, ', '.join(datasource_types)))
 
         datasource = template.manage_addRRDDataSource(self.name, type_)
+        self.speclog.info("datasource is now  %s \n" % (datasource))
+        self.speclog.info("self is   %s \n" % (self))
+        self.speclog.info("self.component is   %s \n" % (self.component))
+        self.speclog.info("self.eventClass is   %s \n" % (self.eventClass))
+        self.speclog.info("self.severity is   %s \n" % (self.severity))
+        self.speclog.info("self.commandTemplate is   %s \n" % (self.commandTemplate))
+        self.speclog.info("self.extra_params is   %s \n" % (self.extra_params))
         self.speclog.debug("adding datasource")
 
         if self.enabled is not None:
@@ -3779,6 +3788,10 @@ class RRDDatasourceSpec(Spec):
 
         if self.extra_params:
             for param, value in self.extra_params.iteritems():
+                for k,v in datasource.__dict__.items():
+                    self.speclog.info("key is %s and value is %s \n" % (k, v))
+                for p in datasource._properties:
+                    self.speclog.info("property is %s \n" % (p['id']))
                 if param in [x['id'] for x in datasource._properties]:
                     # handle an ui test error that expects the oid value to be a string
                     # this is to workaround a ui bug known in 4.5 and 5.0.3

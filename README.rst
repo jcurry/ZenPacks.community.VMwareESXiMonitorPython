@@ -119,7 +119,8 @@ Requirements & Dependencies
 ===========================
 
     * Zenoss Versions Supported:  4.x
-    * External Dependencies: 
+    * External Dependencies 
+
       * The zenpacklib package that this ZenPack is built on, requires PyYAML.  This is installed as 
       standard with Zenoss 5 and with Zenoss 4 with SP457.  To test whether it is installed, as
       the zenoss user, enter the python environment and import yaml:
@@ -134,8 +135,9 @@ Requirements & Dependencies
 
         easy_install PyYAML
 
-      and then rerun the test above. You may see warning messages referring to the absenace of libyaml - you 
+      and then rerun the test above. You may see warning messages referring to the absence of libyaml - you 
       appear to be able to ignore these.
+
 
       * The pyvmomi Python vSphere SDK must be installed (as the zenoss user).  With Zenoss 4.2.5 it appears 
         essential to get the older version 5.5.0 otherwise errors result trying to find elements of urllib.
@@ -192,10 +194,9 @@ NOTE: Any existing local templates created for ESXi devices or their components 
 
 * Backup the entire system
 * Perform a zenbackup
-* Move all devices under existing /VMware/ESXi device class ro a temporary device class
-  * /Ping   may be appropriate if it currently has no devices in it.  Or create a new subclass under /Ping.
+* Move all devices under existing /Server/VMware/ESXi device class ro a temporary device class.  /Ping   may be appropriate if it currently has no devices in it.  Or create a new subclass under /Ping.
 * Remove the old ZenPack
-  * zenpack --remove ZenPacks.community.VMwareESXiMonitor  
+   * zenpack --remove ZenPacks.community.VMwareESXiMonitor  
 * Completely restart Zenoss
 * Ensure the PythonCollector ZenPack is at at least version 1.6  
 * Check whether PyYAML is installed.  If not, install it.  See notes above.
@@ -204,6 +205,9 @@ NOTE: Any existing local templates created for ESXi devices or their components 
 * Completely restart Zenoss
 * Modify performanceSource attribute in VMwareDatastore and VMwareGuest datasources
 * Set zVSphereUsername / zVSpherePassword in device / device classes  
+* Move initial test device back from /Ping to new /Server/VMware/ESXi
+* Model this device and check components are correct
+* Check that performance data is appearing in the correct directories and that graphs are correct.  
 
 Change History
 ==============
@@ -218,7 +222,8 @@ See the screenshots directory.
 
 .. External References Below. Nothing Below This Line Should Be Rendered
 
-.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.0-py2.7.egg?raw=true
+.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.0dev-py2.7.egg?raw=true
+
 
 Acknowledgements
 ================

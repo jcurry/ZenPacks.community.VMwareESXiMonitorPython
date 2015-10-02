@@ -147,6 +147,13 @@ Requirements & Dependencies
                 python setup.py install
 
         A copy of the pyvmomi-5.5.0.zip file is in the lib directory of the ZenPack.        
+        
+        To test that the SDK is installed use:
+      *  python
+      *  import pyVmomi
+      *  pyVmomi
+      *   
+      *  <module 'pyVmomi' from '/opt/zenoss/lib/python2.7/site-packages/pyvmomi-5.5.0-py2.7.egg/pyVmomi/__init__.pyc'>
 
 
     * ZenPack Dependencies: PythonCollector >= 1.6

@@ -51,7 +51,7 @@ class VMwareESXiHostMap(PythonPlugin):
     @inlineCallbacks
     def collect(self, device, log):
 
-        log.info('Getting VMware ESXi host info for device %s' % device.id)
+        log.info('Getting VMware ESXi Host info for device %s' % device.id)
         username = getattr(device, 'zVSphereUsername', None)
         password = getattr(device, 'zVSpherePassword', None)
         if (not username or not password):

@@ -10,9 +10,9 @@
 #
 ################################################################################
 
-__doc__ = """VMwareESXiGuestMap
+__doc__ = """VMwareESXiDatastoreMap
 
-VMwareESXiGuestMap gathers ESXi Guest VM information.
+VMwareESXiDatastoreMap gathers ESXi Datastore information.
 
 """
 
@@ -32,17 +32,17 @@ def getData(host, username, password, port, log):
                                    port=port)
     atexit.register(Disconnect, serviceInstance)
     content = serviceInstance.RetrieveContent()
-    vm_view = content.viewManager.CreateContainerView(content.rootFolder,
-                                                        [vim.VirtualMachine],
+    datastore_view = content.viewManager.CreateContainerView(content.rootFolder,
+                                                        [vim.Datastore],
                                                         True)
-    vms = [vm for vm in vm_view.view]
-    log.debug(' in getData - vms is %s \n' % (vms))
-    vm_view.Destroy()
+    datastores = [datastore for datastore in datastore_view.view]
+    log.debug(' in getData - datastores is %s \n' % (datastores))
+    datastore_view.Destroy()
 
-    return vms
+    return datastores
 
 
-class VMwareESXiGuestMap(PythonPlugin):
+class VMwareESXiDatastoreMap(PythonPlugin):
     deviceProperties = PythonPlugin.deviceProperties + (
         'zVSphereUsername',
         'zVSpherePassword'
@@ -51,7 +51,7 @@ class VMwareESXiGuestMap(PythonPlugin):
     @inlineCallbacks
     def collect(self, device, log):
 
-        log.info('Getting VMware ESXi host info for device %s' % device.id)
+        log.info('Getting VMware ESXi Datastore info for device %s' % device.id)
         username = getattr(device, 'zVSphereUsername', None)
         password = getattr(device, 'zVSpherePassword', None)
         if (not username or not password):
@@ -69,24 +69,27 @@ class VMwareESXiGuestMap(PythonPlugin):
     def process(self, device, results, log):
         log.debug(' Start of process - results is %s \n' % (results))
         maps = []
-        vms = []
+        datastores = []
 
-        for vm in results:
-            vmDict = {}
-            vmDict['id'] = self.prepId(vm.name)
-            vmDict['title'] = vm.name
-            vmDict['memory'] = int(vm.config.hardware.memoryMB) * 1024 * 1024
-            vmDict['osType'] = vm.config.guestFullName
-            vms.append(ObjectMap(data=vmDict))
+        for datastore in results:
+            datastoreDict = {}
+            datastoreDict['id'] = self.prepId(datastore.summary.name)
+            datastoreDict['title'] = datastore.summary.name
+            datastoreDict['type'] = datastore.summary.type
+            datastoreDict['capacity'] = long(datastore.summary.capacity)
+            #datastoreDict['accessible'] = datastore.summary.accessible
+            if not int(datastore.summary.accessible) == 1:
+                log.warning('Datastore %s of device %s is not accessible' % (datastoreDict['id'], device.id))
+                continue
 
-            log.debug(' vmDict is %s \n' % (vmDict))
+            datastores.append(ObjectMap(data=datastoreDict))
+            log.debug(' datastoreDict is %s \n' % (datastoreDict))
+            log.debug('VM Datastore is %s \n' % ( datastoreDict['id']))
 
-            log.debug('VM Guest is %s \n' % ( vmDict['id']))
-
-        maps.append(RelationshipMap(
-            relname = 'esxiVm',
-            modname = 'ZenPacks.community.VMwareESXiMonitorPython.ESXiVM',
-            objmaps = vms ))
+            maps.append(RelationshipMap(
+                relname = 'esxiDatastore',
+                modname = 'ZenPacks.community.VMwareESXiMonitorPython.ESXiDatastore',
+                objmaps = datastores ))
 
         return maps
 

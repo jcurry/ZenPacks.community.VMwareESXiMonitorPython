@@ -48,16 +48,8 @@ class VMwareDataSource(PythonDataSource):
 
     # Custom fields in the datasource - with default values
     # (which can be overriden in template )
-
-    performanceSource = 'VMwareHost'
-    instance = ''
     # cycletime defaults to 300
     cycletime = 300
-
-    properties = PythonDataSource._properties + (
-    {'id': 'performanceSource', 'type': 'string', 'mode': 'w'},
-    {'id': 'instance', 'type': 'string', 'mode': 'w'},
-    )
 
     # Collection plugin for this type. Defined below in this file.
     plugin_classname = ZENPACKID + '.datasources.VMwareDataSource.VMwareDataSourcePlugin'
@@ -65,25 +57,16 @@ class VMwareDataSource(PythonDataSource):
 class IVMwareDataSourceInfo(IRRDDataSourceInfo):
     """Interface that creates the web form for this data source type."""
 
-    performanceSource = schema.TextLine(
-        title = _t(u'Performance Source'),
-        group = _t('VMware parameters'))
-
-    instance = schema.TextLine(
-        title = _t(u'Instance'),
-        group = _t('VMware parameters'))
-
     cycletime = schema.TextLine(
         title = _t(u'Cycle Time'),
-        group = _t('cycletime - think hard before you change this!'))
+        group = _t('cycletime - think hard before you change this!')
+    )
 
 class VMwareDataSourceInfo(RRDDataSourceInfo):
     """ Adapter between IVMwareDataSourceInfo and VMwareDataSource """
     implements(IVMwareDataSourceInfo)
     adapts(VMwareDataSource)
 
-    performanceSource = ProxyProperty('performanceSource')
-    instance = ProxyProperty('instance')
     cycletime = ProxyProperty('cycletime')
 
     # Doesn't seem to run in the GUI if you activate the test button
@@ -102,9 +85,9 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
     @classmethod
     def config_key(cls, datasource, context):
         return (
-        context.device().id,
-        datasource.getCycleTime(context),
-        'VMwareDataSource',
+            context.device().id,
+            datasource.getCycleTime(context),
+            'VMwareDataSource',
         )
 
     @classmethod
@@ -124,19 +107,9 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
 
         # context is the object in question - device or component - component in this case
         params = {}
-       
-        ps = datasource.talesEval(datasource.performanceSource, context)
-        #Original ZP has ONE datasource for both device (ESXiHost) and components (ESXiDatasource & ESXiVM)
-        # performanceSource designates device/component type - VMwareHost, VMwareDatasource, VMwareGuest
-        if ps != 'VMwareHost':
-            deviceName = context.device().titleOrId()
-        else:
-            deviceName = context.titleOrId()
 
-        params['performanceSource'] = ps
-        params['instance'] = datasource.talesEval(datasource.instance, context)
         params['isMonitored'] = context.monitor
-        params['deviceName'] = deviceName
+        params['deviceName'] = context.getDeviceName()
         log.debug(' params is %s \n' % (params))
         return params
 
@@ -198,7 +171,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         try:
             hosts, vms, datastores, perfManager, vpm  = yield getData(ds0.manageIp, ds0.zVSphereUsername, ds0.zVSpherePassword, port, log)
         except Exception, e:
-            log.error( "%s: %s", ds0.device, e)
+            log.error('%s: %s', ds0.device, e)
             returnValue(None)
         returnValue({'hosts':hosts, 'vms':vms, 'datastores':datastores, 'perfManager':perfManager, 'vpm': vpm})
 
@@ -404,7 +377,6 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         dataDatastores = {}
         for datastore in datastores:
             log.debug('datastore is %s name is %s \n' % (datastore, datastore.name))
-            # Note that BuildQuery will return a list so need to use sum function
             dataDatastore = {}
             if datastore.summary.accessible:
                 dataDatastore['diskFreeSpace'] = datastore.summary.freeSpace
@@ -419,24 +391,24 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         #log.debug(' dataDatastores is %s \n' % (dataDatastores))
 
         data = self.new_data()
-        ds0 = config.datasources[0]
         for ds in config.datasources:
             #log.debug('ds is %s and hosts is %s and vms is %s and datastores is %s \n' % (ds, hosts, vms, datastores))
             #log.debug(' Datasource is %s and datasource.component is %s and datasource.template is %s and params is %s and plugin is %s \n' % (ds.datasource, ds.component, ds.template, ds.params, ds.plugin_classname))
 
-            if ds.params['performanceSource'] == 'VMwareHost':
-                for datapoint_id in (x.id for x in ds.points):
-                    if not dataHosts.has_key(datapoint_id):
-                        continue
-                    try:
-                        value = dataHosts[datapoint_id]
-                    except Exception, e:
-                        log.error('Failed to get value datapoint for ESXi Host, error is %s' % (e))
-                        continue
-                    dpname = '_'.join((ds.datasource, datapoint_id))
-                    data['values'][ds.component][dpname] = (value, 'N')
+            if ds.datasource == 'VMwareHost':
+                if ds.params['isMonitored']:
+                    for datapoint_id in (x.id for x in ds.points):
+                        if not dataHosts.has_key(datapoint_id):
+                            continue
+                        try:
+                            value = dataHosts[datapoint_id]
+                        except Exception, e:
+                            log.error('Failed to get value datapoint for ESXi Host, error is %s' % (e))
+                            continue
+                        dpname = '_'.join((ds.datasource, datapoint_id))
+                        data['values'][ds.component][dpname] = (value, 'N')
 
-            elif ds.params['performanceSource'] == 'VMwareGuest':
+            elif ds.datasource == 'VMwareGuest':
                 if ds.params['isMonitored']:
                     for vm, vmdata in dataGuests.iteritems():
                         if vm == ds.component:
@@ -451,7 +423,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                                 dpname = '_'.join((ds.datasource, datapoint_id))
                                 data['values'][ds.component][dpname] = (value, 'N')
 
-            elif ds.params['performanceSource'] == 'VMwareDatastore':
+            elif ds.datasource == 'VMwareDatastore':
                 if ds.params['isMonitored']:
                     for datastore, datastoredata in dataDatastores.iteritems():
                         if datastore == ds.component:
@@ -465,6 +437,9 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                                     continue
                                 dpname = '_'.join((ds.datasource, datapoint_id))
                                 data['values'][ds.component][dpname] = (value, 'N')
+
+            else:
+                log.error('Unknown data source: %s' % (ds.datasource))
         return data
 
 

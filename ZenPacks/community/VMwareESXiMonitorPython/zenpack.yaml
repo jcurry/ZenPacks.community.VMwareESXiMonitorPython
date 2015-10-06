@@ -36,8 +36,6 @@ device_classes:
         datasources:
           VMwareDatastore:
             type: VMware
-            #performanceSource: VMwareDatastore
-            #instance: fred
             datapoints:
               connectionStatus:
                 rrdmin: 1
@@ -87,7 +85,6 @@ device_classes:
         datasources:
           VMwareHost:
             type: VMware
-            #performanceSource: VMwareHost
             datapoints:
               cpuReservedcapacity: {}
               cpuUsage: {}
@@ -239,7 +236,6 @@ device_classes:
         datasources:
           VMwareGuest:
             type: VMware
-            #performanceSource: VMwareGuest
             datapoints:
               adminStatus:
                 rrdmin: 0

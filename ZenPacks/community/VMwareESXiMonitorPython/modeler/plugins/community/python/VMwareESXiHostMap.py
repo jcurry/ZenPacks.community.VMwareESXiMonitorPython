@@ -82,7 +82,6 @@ class VMwareESXiHostMap(PythonPlugin):
             hostDict['numCpuCoresPerPkgs'] = hostDict['numCpuCores'] / hostDict['numCpuPkgs']
             hostDict['numCpuThreads'] = int(host.summary.hardware.numCpuThreads)
             hostDict['numNics'] = int(host.summary.hardware.numNics)
-            hostDict['esxiHostName'] = host.summary.config.name
             vmotionState = host.summary.config.vmotionEnabled
             if vmotionState == 0:
                 hostDict['vmotionState'] = True
@@ -91,7 +90,6 @@ class VMwareESXiHostMap(PythonPlugin):
 
             log.debug(' hostDict is %s \n' % (hostDict))
 
-        log.debug('Host is %s \n' % ( hostDict['esxiHostName']))
         maps.append(ObjectMap({'totalMemory': host.summary.hardware.memorySize }, compname='hw'))
         maps.append(ObjectMap({'totalSwap': 0}, compname='os'))
 

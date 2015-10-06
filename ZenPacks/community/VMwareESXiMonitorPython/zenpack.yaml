@@ -351,9 +351,6 @@ classes:
       numNics:
         type: int
         label: numNics
-      esxiHostName:
-        type: string
-        label: esxiHostName
       vmotionState:
         type: boolean
         label: vmotionState

@@ -320,7 +320,6 @@ device_classes:
 classes:
   DEFAULTS:
     base: [zenpacklib.Component]
-    #base: [NestedComponent]
 
   ESXiHost:
     base: [zenpacklib.Device]
@@ -358,8 +357,10 @@ classes:
     relationships:
       esxiVm:
         label: VM
+        display: false
       esxiDatastore:
         label: Datastore
+        display: false
 
   ESXiVM:
     label: ESXi VM
@@ -399,6 +400,7 @@ classes:
     relationships:
       esxiHost:
         label: Host
+        display: false
 
   ESXiDatastore:
     label: ESXi Datastore
@@ -442,10 +444,10 @@ classes:
         api_only: true
         api_backendtype: method
 
-
     relationships:
       esxiHost:
         label: Host
+        display: false
 
 
 class_relationships:

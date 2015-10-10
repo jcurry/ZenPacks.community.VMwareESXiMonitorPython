@@ -21,8 +21,7 @@ from Products.Zuul.infos.template import RRDDataSourceInfo
 from Products.Zuul.interfaces import IRRDDataSourceInfo
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
-from pyVim import connect
-from pyVmomi import vmodl
+from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 import atexit
 import operator
@@ -119,7 +118,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         def getData(host, user, password, port, log):
         # make a connection
             try:
-                conn = connect.SmartConnect(host=host, user=user, pwd=password, port=port)
+                conn = SmartConnect(host=host, user=user, pwd=password, port=port)
                 if not conn:
                     log.warn('Could not connect to host %s \n' % (host))
                 else:
@@ -157,7 +156,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                 log.warn('Failed to get data from host %s\n' % (host))
 
             # Note: from daemons use a shutdown hook to do this, not the atexit
-            atexit.register(connect.Disconnect, conn)
+            atexit.register(Disconnect, conn)
 
         ds0 = config.datasources[0]
 
@@ -359,7 +358,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                         dataGuest[dataPoint] = perfValue
 
                 overallStatus = vm.summary.overallStatus
-                operStatus = 0
+                operStatus = None
                 if overallStatus == 'green':
                     operStatus = 1
                 elif overallStatus == 'red':

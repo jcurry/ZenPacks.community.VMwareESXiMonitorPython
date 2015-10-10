@@ -78,37 +78,40 @@ Ext.apply(Zenoss.render, {
         }
     },
     adminStatus: function(n) {
-        var tpl = new Ext.Template(
-            '<img border="0" src="img/{color}_dot.png"',
-            'style="vertical-align:middle"/>'
-        ),
-        result = '';
+        var status = parseInt(n),
+            tpl = new Ext.Template(
+                '<img border="0" src="img/{color}_dot.png"',
+                'style="vertical-align:middle"/>'
+            ),
+            result = '';
         tpl.compile();
-        switch (n) {
+        switch (status) {
             case 1:
-            result += tpl.apply({color:'green'});
-            break; 
+                result += tpl.apply({color:'green'});
+                break; 
             case 2:
-            result += tpl.apply({color:'red'});
-            break; 
+                result += tpl.apply({color:'red'});
+                break; 
             case 3:
-            result += tpl.apply({color:'orange'});
-            break; 
+                result += tpl.apply({color:'orange'});
+                break; 
             default:
-            result += tpl.apply({color:'blue'});
+                result += tpl.apply({color:'blue'});
         }
         return result;
     },
-    operStatus: function(n, meta, record) {
-        var adminStatus = record.data.adminStatus;
-        var tpl = new Ext.Template(
-            '<img border="0" src="img/{color}_dot.png"',
-            'style="vertical-align:middle"/>'
-        ),
-        result = '';
+    operStatus: function(n) {
+        var status = parseInt(n),
+            tpl = new Ext.Template(
+                '<img border="0" src="img/{color}_dot.png"',
+                'style="vertical-align:middle"/>'
+            ),
+            result = '';
         tpl.compile();
-        if (adminStatus==1) {
-            switch (n) {
+        switch (status) {
+            case 0:
+                result += tpl.apply({color:'grey'});
+                break;
             case 1:
                 result += tpl.apply({color:'green'});
                 break;
@@ -123,9 +126,6 @@ Ext.apply(Zenoss.render, {
                 break;
             default:
                 result += tpl.apply({color:'blue'});
-            }
-        } else {
-            result += tpl.apply({color:'grey'});
         }
         return result;
     },

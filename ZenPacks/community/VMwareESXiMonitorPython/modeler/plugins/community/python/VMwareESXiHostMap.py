@@ -24,7 +24,7 @@ from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 
 def getData(host, username, password, port, log):
-    
+
     log.debug('In getData. host is %s, username is %s, password is %s, port is %s \n' % (host, username, password, port))
     serviceInstance = SmartConnect(host=host,
                                    user=username,
@@ -51,7 +51,7 @@ class VMwareESXiHostMap(PythonPlugin):
     @inlineCallbacks
     def collect(self, device, log):
 
-        log.info('Getting VMware ESXi host info for device %s' % device.id)
+        log.info('Getting VMware ESXi Host info for device %s' % device.id)
         username = getattr(device, 'zVSphereUsername', None)
         password = getattr(device, 'zVSpherePassword', None)
         if (not username or not password):
@@ -82,7 +82,6 @@ class VMwareESXiHostMap(PythonPlugin):
             hostDict['numCpuCoresPerPkgs'] = hostDict['numCpuCores'] / hostDict['numCpuPkgs']
             hostDict['numCpuThreads'] = int(host.summary.hardware.numCpuThreads)
             hostDict['numNics'] = int(host.summary.hardware.numNics)
-            hostDict['esxiHostName'] = host.summary.config.name
             vmotionState = host.summary.config.vmotionEnabled
             if vmotionState == 0:
                 hostDict['vmotionState'] = True
@@ -91,7 +90,6 @@ class VMwareESXiHostMap(PythonPlugin):
 
             log.debug(' hostDict is %s \n' % (hostDict))
 
-        log.debug('Host is %s \n' % ( hostDict['esxiHostName']))
         maps.append(ObjectMap({'totalMemory': host.summary.hardware.memorySize }, compname='hw'))
         maps.append(ObjectMap({'totalSwap': 0}, compname='os'))
 

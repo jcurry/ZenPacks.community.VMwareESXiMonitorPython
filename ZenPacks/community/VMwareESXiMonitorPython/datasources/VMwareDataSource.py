@@ -21,10 +21,10 @@ from Products.Zuul.infos.template import RRDDataSourceInfo
 from Products.Zuul.interfaces import IRRDDataSourceInfo
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
-from pyVim import connect
-from pyVmomi import vmodl
+from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 import atexit
+import operator
 
 # Setup logging
 import logging
@@ -47,16 +47,8 @@ class VMwareDataSource(PythonDataSource):
 
     # Custom fields in the datasource - with default values
     # (which can be overriden in template )
-
-    performanceSource = 'VMwareHost'
-    instance = ''
     # cycletime defaults to 300
     cycletime = 300
-
-    properties = PythonDataSource._properties + (
-    {'id': 'performanceSource', 'type': 'string', 'mode': 'w'},
-    {'id': 'instance', 'type': 'string', 'mode': 'w'},
-    )
 
     # Collection plugin for this type. Defined below in this file.
     plugin_classname = ZENPACKID + '.datasources.VMwareDataSource.VMwareDataSourcePlugin'
@@ -64,25 +56,16 @@ class VMwareDataSource(PythonDataSource):
 class IVMwareDataSourceInfo(IRRDDataSourceInfo):
     """Interface that creates the web form for this data source type."""
 
-    performanceSource = schema.TextLine(
-        title = _t(u'Performance Source'),
-        group = _t('VMware parameters'))
-
-    instance = schema.TextLine(
-        title = _t(u'Instance'),
-        group = _t('VMware parameters'))
-
     cycletime = schema.TextLine(
         title = _t(u'Cycle Time'),
-        group = _t('cycletime - think hard before you change this!'))
+        group = _t('cycletime - think hard before you change this!')
+    )
 
 class VMwareDataSourceInfo(RRDDataSourceInfo):
     """ Adapter between IVMwareDataSourceInfo and VMwareDataSource """
     implements(IVMwareDataSourceInfo)
     adapts(VMwareDataSource)
 
-    performanceSource = ProxyProperty('performanceSource')
-    instance = ProxyProperty('instance')
     cycletime = ProxyProperty('cycletime')
 
     # Doesn't seem to run in the GUI if you activate the test button
@@ -100,19 +83,10 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
 
     @classmethod
     def config_key(cls, datasource, context):
-
-        #return (
-        #context.device().id,
-        #datasource.getCycleTime(context),
-        #datasource.rrdTemplate().id,
-        #datasource.id,
-        #context.id,
-        #'VMwareDataSource',
-        #)
         return (
-        context.device().id,
-        datasource.getCycleTime(context),
-        'VMwareDataSource',
+            context.device().id,
+            datasource.getCycleTime(context),
+            'VMwareDataSource',
         )
 
     @classmethod
@@ -132,19 +106,9 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
 
         # context is the object in question - device or component - component in this case
         params = {}
-       
-        ps = datasource.talesEval(datasource.performanceSource, context)
-        #Original ZP has ONE datasource for both device (ESXiHost) and components (ESXiDatasource & ESXiVM)
-        # performanceSource designates device/component type - VMwareHost, VMwareDatasource, VMwareGuest
-        if ps != 'VMwareHost':
-            deviceName = context.device().titleOrId()
-        else:
-            deviceName = context.titleOrId()
 
-        params['performanceSource'] = ps
-        params['instance'] = datasource.talesEval(datasource.instance, context)
         params['isMonitored'] = context.monitor
-        params['deviceName'] = deviceName
+        params['deviceName'] = context.getDeviceName()
         log.debug(' params is %s \n' % (params))
         return params
 
@@ -154,7 +118,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         def getData(host, user, password, port, log):
         # make a connection
             try:
-                conn = connect.SmartConnect(host=host, user=user, pwd=password, port=port)
+                conn = SmartConnect(host=host, user=user, pwd=password, port=port)
                 if not conn:
                     log.warn('Could not connect to host %s \n' % (host))
                 else:
@@ -190,9 +154,9 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                     return hosts, vms, datastores, perfManager, vpm
             except:
                 log.warn('Failed to get data from host %s\n' % (host))
-                
+
             # Note: from daemons use a shutdown hook to do this, not the atexit
-            atexit.register(connect.Disconnect, conn)
+            atexit.register(Disconnect, conn)
 
         ds0 = config.datasources[0]
 
@@ -206,7 +170,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         try:
             hosts, vms, datastores, perfManager, vpm  = yield getData(ds0.manageIp, ds0.zVSphereUsername, ds0.zVSpherePassword, port, log)
         except Exception, e:
-            log.error( "%s: %s", ds0.device, e)
+            log.error('%s: %s', ds0.device, e)
             returnValue(None)
         returnValue({'hosts':hosts, 'vms':vms, 'datastores':datastores, 'perfManager':perfManager, 'vpm': vpm})
 
@@ -304,82 +268,64 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
 
         interval = 20
 
+        # Operators
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.div
+        }
+
         # Get values for required datapoints into a dictionary
         # Hosts
+        hostDataPoints = {
+            'sysUpTime': {'counterName': 'sys.uptime.latest', 'opType': '', 'factor': ''},
+            'memUsage': {'counterName': 'mem.usage.minimum', 'opType': '/', 'factor': '100'},
+            'memSwapused': {'counterName': 'mem.swapused.maximum', 'opType': '*', 'factor': '1024'},
+            'memGranted': {'counterName': 'mem.granted.maximum', 'opType': '*', 'factor': '1024'},
+            'memActive': {'counterName': 'mem.active.maximum', 'opType': '*', 'factor': '1024'},
+            'diskUsage': {'counterName': 'disk.usage.average', 'opType': '*', 'factor': '1024'},
+            'cpuUsageMin': {'counterName': 'cpu.usage.minimum', 'opType': '/', 'factor': '100'},
+            'cpuUsageMax': {'counterName': 'cpu.usage.maximum', 'opType': '/', 'factor': '100'},
+            'cpuUsageAvg': {'counterName': 'cpu.usage.average', 'opType': '/', 'factor': '100'},
+            'cpuUsage': {'counterName': 'cpu.usagemhz.average', 'opType': '*', 'factor': '1000000'},
+            'cpuReservedcapacity': {'counterName': 'cpu.reservedCapacity.average', 'opType': '*', 'factor': '1000000'},
+            'netReceived': {'counterName': 'net.received.average', 'opType': '*', 'factor': '8192'},
+            'netTransmitted': {'counterName': 'net.transmitted.average', 'opType': '*', 'factor': '8192'},
+            'netPacketsRx': {'counterName': 'net.packetsRx.summation', 'opType': '', 'factor': ''},
+            'netPacketsTx': {'counterName': 'net.packetsTx.summation', 'opType': '', 'factor': ''},
+            'netDroppedRx': {'counterName': 'net.droppedRx.summation', 'opType': '', 'factor': ''},
+            'netDroppedTx': {'counterName': 'net.droppedTx.summation', 'opType': '', 'factor': ''}
+        }
+
         dataHosts = {}
         for host in hosts:
             log.debug('Host is %s name is %s \n' % (host, host.name))
-            # Note that BuildQuery will return a list so need to use sum function
-            statSysUpTime = BuildQuery(perfManager, (StatCheck(perf_dict, 'sys.uptime.latest')), "", host, interval)
-            if statSysUpTime:
-                sysUpTime = float(sum(statSysUpTime[0].value[0].value))
-                dataHosts['sysUpTime'] = sysUpTime
-            statMemUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.usage.minimum')), "", host, interval)
-            if statMemUsage:
-                memUsage = (float(sum(statMemUsage[0].value[0].value)) / 100)
-                dataHosts['memUsage'] = memUsage
-            statMemSwapused = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.swapused.maximum')), "", host, interval)
-            if statMemSwapused:
-                memSwapused = (float(sum(statMemSwapused[0].value[0].value)) * 1024)
-                dataHosts['memSwapused'] = memSwapused
-            statMemGranted = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.granted.maximum')), "", host, interval)
-            if statMemGranted:
-                memGranted = (float(sum(statMemGranted[0].value[0].value)) * 1024)
-                dataHosts['memGranted'] = memGranted
-            statMemActive = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.active.maximum')), "", host, interval)
-            if statMemActive:
-                memActive = (float(sum(statMemActive[0].value[0].value)) * 1024)
-                dataHosts['memActive'] = memActive
-            statDiskUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'disk.usage.average')), "", host, interval)
-            if statDiskUsage:
-                diskUsage = (float(sum(statDiskUsage[0].value[0].value)) * 1024)
-                dataHosts['diskUsage'] = diskUsage
-            statCpuUsageMin = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.minimum')), "", host, interval)
-            if statCpuUsageMin:
-                cpuUsageMin = (float(sum(statCpuUsageMin[0].value[0].value))  / 100)
-                dataHosts['cpuUsageMin'] = cpuUsageMin
-            statCpuUsageMax = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.maximum')), "", host, interval)
-            if statCpuUsageMax:
-                cpuUsageMax = (float(sum(statCpuUsageMax[0].value[0].value))  / 100)
-                dataHosts['cpuUsageMax'] = cpuUsageMax
-            statCpuUsageAvg = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.average')), "", host, interval)
-            if statCpuUsageAvg:
-                cpuUsageAvg = (float(sum(statCpuUsageAvg[0].value[0].value))  / 100)
-                dataHosts['cpuUsageAvg'] = cpuUsageAvg
-            statCpuUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usagemhz.average')), "", host, interval)
-            if statCpuUsage:
-                cpuUsage = (float(sum(statCpuUsage[0].value[0].value))  * 1000000)
-                dataHosts['cpuUsage'] = cpuUsage
-            statCpuReservedcapacity = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.reservedCapacity.average')), "", host, interval)
-            if statCpuReservedcapacity:
-                cpuReservedcapacity = (float(sum(statCpuReservedcapacity[0].value[0].value))  * 1000000)
-                dataHosts['cpuReservedcapacity'] = cpuReservedcapacity
-            statNetReceived = BuildQuery(perfManager, (StatCheck(perf_dict, 'net.received.average')), "", host, interval)
-            if statNetReceived:
-                netReceived = (float(sum(statNetReceived[0].value[0].value))  * 8192)
-                dataHosts['netReceived'] = netReceived
-            statNetTransmitted= BuildQuery(perfManager, (StatCheck(perf_dict, 'net.transmitted.average')), "", host, interval)
-            if statNetTransmitted:
-                netTransmitted = (float(sum(statNetTransmitted[0].value[0].value))  * 8192)
-                dataHosts['netTransmitted'] = netTransmitted
-            statNetPacketsRx = BuildQuery(perfManager, (StatCheck(perf_dict, 'net.packetsRx.summation')), "", host, interval)
-            if statNetPacketsRx:
-                netPacketsRx = float(sum(statNetPacketsRx[0].value[0].value))
-                dataHosts['netPacketsRx'] = netPacketsRx
-            statNetPacketsTx = BuildQuery(perfManager, (StatCheck(perf_dict, 'net.packetsTx.summation')), "", host, interval)
-            if statNetPacketsTx:
-                netPacketsTx = float(sum(statNetPacketsTx[0].value[0].value))
-                dataHosts['netPacketsTx'] = netPacketsTx
-            statNetDroppedRx = BuildQuery(perfManager, (StatCheck(perf_dict, 'net.droppedRx.summation')), "", host, interval)
-            if statNetDroppedRx:
-                netDroppedRx = float(sum(statNetDroppedRx[0].value[0].value))
-                dataHosts['netDroppedRx'] = netDroppedRx
-            statNetDroppedTx = BuildQuery(perfManager, (StatCheck(perf_dict, 'net.droppedTx.summation')), "", host, interval)
-            if statNetDroppedTx:
-                netDroppedTx = float(sum(statNetDroppedTx[0].value[0].value))
-                dataHosts['netDroppedTx'] = netDroppedTx
+            for dataPoint, dataPointData in hostDataPoints.iteritems():
+                # Note that BuildQuery will return a list so need to use sum function
+                perfResults = BuildQuery(perfManager, (StatCheck(perf_dict, dataPointData['counterName'])), "", host, interval)
+                opType = dataPointData['opType']
+                factor = dataPointData['factor']
+                if perfResults:
+                    if opType and factor:
+                        opFunction = ops[opType]
+                        perfValue = opFunction(float(sum(perfResults[0].value[0].value)), float(factor))
+                    else:
+                        perfValue = float(sum(perfResults[0].value[0].value))
+                    dataHosts[dataPoint] = perfValue
 
         # Guest VMs
+        guestDataPoints = {
+            'memUsage': {'counterName': 'mem.usage.minimum', 'opType': '/', 'factor': '100'},
+            'memOverhead': {'counterName': 'mem.overhead.minimum', 'opType': '*', 'factor': '1024'},
+            'memConsumed': {'counterName': 'mem.consumed.minimum', 'opType': '*', 'factor': '1024'},
+            'diskUsage': {'counterName': 'disk.usage.average', 'opType': '*', 'factor': '1024'},
+            'cpuUsageMin': {'counterName': 'cpu.usage.minimum', 'opType': '/', 'factor': '100'},
+            'cpuUsageMax': {'counterName': 'cpu.usage.maximum', 'opType': '/', 'factor': '100'},
+            'cpuUsageAvg': {'counterName': 'cpu.usage.average', 'opType': '/', 'factor': '100'},
+            'cpuUsage': {'counterName': 'cpu.usagemhz.average', 'opType': '*', 'factor': '1000000'}
+        }
+
         dataGuests = {}
         for vm in vms:
             log.debug('vm is %s name is %s \n' % (vm, vm.name))
@@ -398,41 +344,21 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                     dataGuest['adminStatus'] = 2
                 elif powerState == 'suspended':
                     dataGuest['adminStatus'] = 3
-            else:        
-                statMemUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.usage.minimum')), "", vm, interval)
-                if statMemUsage:
-                    memUsage = (float(sum(statMemUsage[0].value[0].value)) / 100 )
-                    dataGuest['memUsage'] = memUsage
-                statMemOverhead = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.overhead.minimum')), "", vm, interval)
-                if statMemOverhead:
-                    memOverhead = (float(sum(statMemOverhead[0].value[0].value)) * 1024 )
-                    dataGuest['memOverhead'] = memOverhead
-                statMemConsumed = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.consumed.minimum')), "", vm, interval)
-                if statMemConsumed:
-                    memConsumed = (float(sum(statMemConsumed[0].value[0].value)) * 1024 )
-                    dataGuest['memConsumed'] = memConsumed
-                statDiskUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'disk.usage.average')), "", vm, interval)
-                if statDiskUsage:
-                    diskUsage = (float(sum(statDiskUsage[0].value[0].value)) * 1024 )
-                    dataGuest['diskUsage'] = diskUsage
-                statCpuUsageMin = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.minimum')), "", vm, interval)
-                if statCpuUsageMin:
-                    cpuUsageMin = (float(sum(statCpuUsageMin[0].value[0].value)) / 100 )
-                    dataGuest['cpuUsageMin'] = cpuUsageMin
-                statCpuUsageMax = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.maximum')), "", vm, interval)
-                if statCpuUsageMax:
-                    cpuUsageMax = (float(sum(statCpuUsageMax[0].value[0].value)) / 100 )
-                    dataGuest['cpuUsageMax'] = cpuUsageMax
-                statCpuUsageAvg = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.average')), "", vm, interval)
-                if statCpuUsageAvg:
-                    cpuUsageAvg = (float(sum(statCpuUsageAvg[0].value[0].value)) / 100 )
-                    dataGuest['cpuUsageAvg'] = cpuUsageAvg
-                statCpuUsage= BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usagemhz.average')), "", vm, interval)
-                if statCpuUsage:
-                    cpuUsage = (float(sum(statCpuUsage[0].value[0].value)) * 1000000 )
-                    dataGuest['cpuUsage'] = cpuUsage
+            else:
+                for dataPoint, dataPointData in guestDataPoints.iteritems():
+                    perfResults = BuildQuery(perfManager, (StatCheck(perf_dict, dataPointData['counterName'])), "", vm, interval)
+                    opType = dataPointData['opType']
+                    factor = dataPointData['factor']
+                    if perfResults:
+                        if opType and factor:
+                            opFunction = ops[opType]
+                            perfValue = opFunction(float(sum(perfResults[0].value[0].value)), float(factor))
+                        else:
+                            perfValue = float(sum(perfResults[0].value[0].value))
+                        dataGuest[dataPoint] = perfValue
+
                 overallStatus = vm.summary.overallStatus
-                operStatus = 0
+                operStatus = None
                 if overallStatus == 'green':
                     operStatus = 1
                 elif overallStatus == 'red':
@@ -444,13 +370,12 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                 dataGuest['overallStatus'] = overallStatus
                 dataGuest['operStatus'] = operStatus
                 dataGuest['adminStatus'] = 1
-            dataGuests[vm.name] = dataGuest    
+            dataGuests[vm.name] = dataGuest
 
         # Datastores
         dataDatastores = {}
         for datastore in datastores:
             log.debug('datastore is %s name is %s \n' % (datastore, datastore.name))
-            # Note that BuildQuery will return a list so need to use sum function
             dataDatastore = {}
             if datastore.summary.accessible:
                 dataDatastore['diskFreeSpace'] = datastore.summary.freeSpace
@@ -465,25 +390,24 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         #log.debug(' dataDatastores is %s \n' % (dataDatastores))
 
         data = self.new_data()
-        ds0 = config.datasources[0]
         for ds in config.datasources:
             #log.debug('ds is %s and hosts is %s and vms is %s and datastores is %s \n' % (ds, hosts, vms, datastores))
             #log.debug(' Datasource is %s and datasource.component is %s and datasource.template is %s and params is %s and plugin is %s \n' % (ds.datasource, ds.component, ds.template, ds.params, ds.plugin_classname))
 
-            if ds.params['performanceSource'] == 'VMwareHost':
+            if ds.datasource == 'VMwareHost':
+                if ds.params['isMonitored']:
+                    for datapoint_id in (x.id for x in ds.points):
+                        if not dataHosts.has_key(datapoint_id):
+                            continue
+                        try:
+                            value = dataHosts[datapoint_id]
+                        except Exception, e:
+                            log.error('Failed to get value datapoint for ESXi Host, error is %s' % (e))
+                            continue
+                        dpname = '_'.join((ds.datasource, datapoint_id))
+                        data['values'][ds.component][dpname] = (value, 'N')
 
-                for datapoint_id in (x.id for x in ds.points):
-                    if not dataHosts.has_key(datapoint_id):
-                        continue
-                    try:
-                        value = dataHosts[datapoint_id]
-                    except Exception, e:
-                        log.error('Failed to get value datapoint for ESXi host, error is %s' % (e))
-                        continue
-                    dpname = '_'.join((ds.datasource, datapoint_id))
-                    data['values'][ds.component][dpname] = (value, 'N')
-
-            elif ds.params['performanceSource'] == 'VMwareGuest':
+            elif ds.datasource == 'VMwareGuest':
                 if ds.params['isMonitored']:
                     for vm, vmdata in dataGuests.iteritems():
                         if vm == ds.component:
@@ -493,13 +417,12 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                                 try:
                                     value = vmdata[datapoint_id]
                                 except Exception, e:
-                                    log.error('Failed to get value datapoint for ESXi guest, error is %s' % (e))
+                                    log.error('Failed to get value datapoint for ESXi Guest, error is %s' % (e))
                                     continue
                                 dpname = '_'.join((ds.datasource, datapoint_id))
                                 data['values'][ds.component][dpname] = (value, 'N')
 
-
-            elif ds.params['performanceSource'] == 'VMwareDatastore':
+            elif ds.datasource == 'VMwareDatastore':
                 if ds.params['isMonitored']:
                     for datastore, datastoredata in dataDatastores.iteritems():
                         if datastore == ds.component:
@@ -509,10 +432,13 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                                 try:
                                     value = datastoredata[datapoint_id]
                                 except Exception, e:
-                                    log.error('Failed to get value datapoint for ESXi datastore, error is %s' % (e))
+                                    log.error('Failed to get value datapoint for ESXi Datastore, error is %s' % (e))
                                     continue
                                 dpname = '_'.join((ds.datasource, datapoint_id))
                                 data['values'][ds.component][dpname] = (value, 'N')
+
+            else:
+                log.error('Unknown data source: %s' % (ds.datasource))
         return data
 
 
@@ -539,5 +465,3 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         onSuccess or onError method to be used without further processing.
         """
         return result
-
-

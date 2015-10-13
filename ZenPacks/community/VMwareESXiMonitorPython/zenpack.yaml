@@ -317,7 +317,7 @@ device_classes:
         targetPythonClass: Products.ZenModel.IpInterface
 
       ethernetCsmacd:
-        description: ''
+        description: ""
         targetPythonClass: Products.ZenModel.IpInterface
 
 classes:

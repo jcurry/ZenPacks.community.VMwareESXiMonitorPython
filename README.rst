@@ -184,6 +184,13 @@ zenpack --link --install ZenPacks.community.VMwareESXiMonitorPython
 
 Restart zenoss after installation.
 
+Note that when removing this ZenPack you get the following error message:
+
+    WARNING:zen.zenpacklib:Unable to remove DeviceClass Server/VMware/ESXi (not found)
+
+This message appears to be benign and the /Server/VMware/ESXi IS removed.
+
+
 Device Support
 ==============
 

@@ -21,7 +21,7 @@ device_classes:
 
     templates:
       ESXiDatastore:
-        description: ''
+        description: ""
         targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiDatastore
         thresholds:
           Connection Status:
@@ -57,7 +57,7 @@ device_classes:
                 rpn: ${here/capacity},/,100,*,100,-,-1,*
                 includeThresholds: true
       ESXiHost:
-        description: ''
+        description: ""
         targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiHost
         thresholds:
           CPU Critical:
@@ -213,7 +213,7 @@ device_classes:
                 legend: Send
                 includeThresholds: true
       ESXiVM:
-        description: ''
+        description: ""
         targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiVM
         thresholds:
           CPU Critical:
@@ -316,6 +316,9 @@ device_classes:
                 dpName: VMwareGuest_diskUsage
                 lineType: AREA
                 legend: Disk Usage
+      ethernetCsmacd:
+        description: Blank template - prevents standard template from trying to collect invalid OIDs
+        targetPythonClass: Products.ZenModel.IpInterface
 
 classes:
   DEFAULTS:

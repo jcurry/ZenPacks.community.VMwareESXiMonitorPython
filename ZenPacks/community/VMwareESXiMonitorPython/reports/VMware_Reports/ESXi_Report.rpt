@@ -51,18 +51,18 @@
                                         <td class="tablevalues" tal:content="python:r.osType"/>
                                         <td class="tablevalues" tal:content="python:r.humanBytes(r.memory)"/>
                                         <td class="tablevalues">
+                                            <img tal:condition="python:r.adminStatus == 0" tal:attributes="src string:img/grey_dot.png"/>
                                             <img tal:condition="python:r.adminStatus == 1" tal:attributes="src string:img/green_dot.png"/>
                                             <img tal:condition="python:r.adminStatus == 2" tal:attributes="src string:img/red_dot.png"/>
                                             <img tal:condition="python:r.adminStatus == 3" tal:attributes="src string:img/orange_dot.png"/>
-                                            <img tal:condition="python:r.adminStatus < 1 or r.adminStatus > 3" tal:attributes="src string:img/blue_dot.png"/>
+                                            <img tal:condition="python:r.adminStatus < 0 or r.adminStatus > 3" tal:attributes="src string:img/blue_dot.png"/>
                                         </td>
                                         <td class="tablevalues">
                                             <img tal:condition="python:r.operStatus == 0" tal:attributes="src string:img/grey_dot.png"/>
                                             <img tal:condition="python:r.operStatus == 1" tal:attributes="src string:img/green_dot.png"/>
                                             <img tal:condition="python:r.operStatus == 2" tal:attributes="src string:img/red_dot.png"/>
                                             <img tal:condition="python:r.operStatus == 3" tal:attributes="src string:img/yellow_dot.png"/>
-                                            <img tal:condition="python:r.operStatus == 4" tal:attributes="src string:img/grey_dot.png"/>
-                                            <img tal:condition="python:r.operStatus < 0 or r.operStatus > 4" tal:attributes="src string:img/blue_dot.png"/>
+                                            <img tal:condition="python:r.operStatus < 0 or r.operStatus > 3" tal:attributes="src string:img/blue_dot.png"/>
                                         </td>
                                     </tr>
                                 </tal:block>

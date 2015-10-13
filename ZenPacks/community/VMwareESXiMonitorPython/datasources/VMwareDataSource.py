@@ -334,16 +334,15 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             try:
                 powerState = vm.runtime.powerState
             except:
-                dataGuest['powerState'] = 'poweredOff'
                 continue                # go to next VM
-            dataGuest['powerState'] = powerState
             if powerState != 'poweredOn':
-                dataGuest['adminStatus'] = 0
-                dataGuest['operStatus'] = 0
                 if powerState == 'poweredOff':
                     dataGuest['adminStatus'] = 2
                 elif powerState == 'suspended':
                     dataGuest['adminStatus'] = 3
+                else:
+                    dataGuest['adminStatus'] = 0
+                dataGuest['operStatus'] = 0
             else:
                 for dataPoint, dataPointData in guestDataPoints.iteritems():
                     perfResults = BuildQuery(perfManager, (StatCheck(perf_dict, dataPointData['counterName'])), "", vm, interval)
@@ -359,17 +358,16 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
 
                 overallStatus = vm.summary.overallStatus
                 operStatus = None
-                if overallStatus == 'green':
+                if overallStatus == 'gray':
+                    operStatus = 0
+                elif overallStatus == 'green':
                     operStatus = 1
                 elif overallStatus == 'red':
                     operStatus = 2
                 elif overallStatus == 'yellow':
                     operStatus = 3
-                elif overallStatus == 'gray':
-                    operStatus = 4
-                dataGuest['overallStatus'] = overallStatus
-                dataGuest['operStatus'] = operStatus
                 dataGuest['adminStatus'] = 1
+                dataGuest['operStatus'] = operStatus
             dataGuests[vm.name] = dataGuest
 
         # Datastores

@@ -8964,7 +8964,9 @@ poll the vmwVmTable to obtain current status.
 </object>
 </tomanycont>
 </object>
-<!-- ('', 'zport', 'dmd', 'Reports', 'VMware Reports', 'ESXi Report') -->
-<object id='/zport/dmd/Reports/VMware Reports/ESXi Report' module='Products.ZenModel.Report' class='Report'>
+<!-- ('', 'zport', 'dmd', 'Reports', 'VMware Reports') -->
+<object id='/zport/dmd/Reports/VMware Reports' module='Products.ZenModel.ReportClass' class='ReportClass'>
+<object id='ESXi Report' module='Products.ZenModel.Report' class='Report'>
+</object>
 </object>
 </objects>

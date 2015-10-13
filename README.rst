@@ -96,10 +96,6 @@ Note that there is a single datasource called VMware that is used for both the E
 and the ESXiVM and ESXiDatastore components.  It is defined in the datasources directory of the
 ZenPack.
 
-NOTE: Due to a bug, the VMwareGuest datasource in the ESXiVM template has its performanceSource
-attribute set incorrectly.  This must be changed to VMwareGuest.  Similarly, the VMwareDatastore
-datasource in the ESXiDatastore template needs changing to VMwareDatastore.
-
 These Python templates require the PythonCollector ZenPack to be installed as a 
 prerequisite (version >=1.6)
 
@@ -158,9 +154,7 @@ Requirements & Dependencies
 
     * ZenPack Dependencies: PythonCollector >= 1.6
     * Installation Notes: Restart zenoss entirely after installation
-    * Configuration: Change the VMwareGuest datasource in the ESXiVM template and the VMwareDatastore
-      datasource in the ESXiDatastore template as described above.
-      Remember to set the zVSphereUsername and zVSpherePassword properties for devices / device classes.
+    * Configuration: Remember to set the zVSphereUsername and zVSpherePassword properties for devices / device classes.
 
 
 
@@ -176,18 +170,25 @@ ZenPack installation
 
 This ZenPack can be installed from the .egg file using either the GUI or the
 zenpack command line. To install in development mode, from github - 
-https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython  use the ZIP button
-(top left) to download a tgz file and unpack it to a local directory, say,
+https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython  use the "Download ZIP" button
+(on the right) to download a tgz file and unpack it to a local directory, say,
 $ZENHOME/local.  Install from $ZENHOME/local with:
 
 zenpack --link --install ZenPacks.community.VMwareESXiMonitorPython
 
 Restart zenoss after installation.
 
+Note that when removing this ZenPack you get the following error message:
+
+    WARNING:zen.zenpacklib:Unable to remove DeviceClass Server/VMware/ESXi (not found)
+
+This message appears to be benign and the /Server/VMware/ESXi IS removed.
+
+
 Device Support
 ==============
 
-The ZenPack has only been tested so far with Zenoss 4.2.5 with SUP 203.
+The ZenPack has only been tested so far with Zenoss 4.2.5 with SUP 203 and SUP 457.
 
 
 Upgrading from ZenPacks.community.VMwareESXiMonitor to this ZenPack ( ZenPacks.community.VMwareESXiMonitorPython )
@@ -201,7 +202,8 @@ NOTE: Any existing local templates created for ESXi devices or their components 
 
 * Backup the entire system
 * Perform a zenbackup
-* Move all devices under existing /Server/VMware/ESXi device class ro a temporary device class.  /Ping   may be appropriate if it currently has no devices in it.  Or create a new subclass under /Ping.
+* Move all devices under existing /Server/VMware/ESXi device class to a temporary device class.  /Ping   may be 
+  appropriate if it currently has no devices in it.  Or create a new subclass under /Ping.
 * Remove the old ZenPack
    * zenpack --remove ZenPacks.community.VMwareESXiMonitor  
 * Completely restart Zenoss
@@ -210,7 +212,6 @@ NOTE: Any existing local templates created for ESXi devices or their components 
 * Install pyvmomi - see notes above.
 * Install new ZenPack
 * Completely restart Zenoss
-* Modify performanceSource attribute in VMwareDatastore and VMwareGuest datasources
 * Set zVSphereUsername / zVSpherePassword in device / device classes  
 * Move initial test device back from /Ping to new /Server/VMware/ESXi
 * Model this device and check components are correct
@@ -220,6 +221,10 @@ Change History
 ==============
 * 3.0.0
    * Initial Release - version chosen as major version update from original VMwareESXiMonitor ZenPack
+* 3.0.1
+   * With Matthias improvements to datasource, /VMware Reports included in objects.xml, status renderer corrected,
+     performanceSource and instance attributes of datasource removed, modelers moved from cmd subdirectory to python
+     subdirectory, esxiHostName attribute removed from ESXiHost device object.
 
 Screenshots
 ===========
@@ -229,7 +234,7 @@ See the screenshots directory.
 
 .. External References Below. Nothing Below This Line Should Be Rendered
 
-.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.0dev-py2.7.egg?raw=true
+.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.1-py2.7.egg?raw=true
 
 
 Acknowledgements

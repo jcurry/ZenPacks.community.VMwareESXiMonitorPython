@@ -109,6 +109,48 @@ under the /VMware/ESXi event class which have all come directly from the earlier
 
 Similarly, there are a large number of VMware MIBs included to replicate the earlier ZenPack.
 
+Administrative status and Operational status of VMs is as follows:
+
+No/not enough data points collected (e.g. new VM has been detected during modeling)
+
+    admin state "blue"
+    operating state "blue"
+
+VM powered on and entity is ok:
+
+    admin state "green"
+    operating state "green"
+
+VM powered on and entity definitely has a problem:
+
+    admin state "green"
+    operating state "red"
+
+VM powered on and entity might have a problem:
+
+    admin state "green"
+    operating state "yellow"
+
+VM powered on and entity state is unknown:
+
+    admin state "green"
+    operating state "grey"
+
+VM powered off:
+
+    admin state "red"
+    operating state "grey"
+
+VM suspended:
+
+    admin state "orange"
+    operating state "grey"
+
+VM state unknown:
+
+    admin state "grey"
+    operating state "grey"
+
 
 
 Requirements & Dependencies

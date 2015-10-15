@@ -86,6 +86,9 @@ Ext.apply(Zenoss.render, {
             result = '';
         tpl.compile();
         switch (status) {
+            case 0:
+                result += tpl.apply({color:'grey'});
+                break;
             case 1:
                 result += tpl.apply({color:'green'});
                 break; 
@@ -120,9 +123,6 @@ Ext.apply(Zenoss.render, {
                 break;
             case 3:
                 result += tpl.apply({color:'yellow'});
-                break;
-            case 4:
-                result += tpl.apply({color:'grey'});
                 break;
             default:
                 result += tpl.apply({color:'blue'});

@@ -250,7 +250,7 @@ device_classes:
               memUsage: {}
               operStatus:
                 rrdmin: 0
-                rrdmax: 4
+                rrdmax: 3
         graphs:
           Raw CPU Usage:
             units: Hz

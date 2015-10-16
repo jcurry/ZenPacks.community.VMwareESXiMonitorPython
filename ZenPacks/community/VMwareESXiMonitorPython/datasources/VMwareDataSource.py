@@ -117,7 +117,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
     @inlineCallbacks
     def collect(self, config):
 
-        def getData(host, user, password, port, log):
+        def getData(host, user, password, port):
         # make a connection
             try:
                 conn = SmartConnect(host=host, user=user, pwd=password, port=port)
@@ -171,7 +171,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             returnValue(None)
         port = 443
         try:
-            vchtime, hosts, vms, datastores, perfManager, vpm  = yield getData(ds0.manageIp, ds0.zVSphereUsername, ds0.zVSpherePassword, port, log)
+            vchtime, hosts, vms, datastores, perfManager, vpm  = yield getData(ds0.manageIp, ds0.zVSphereUsername, ds0.zVSpherePassword, port)
         except Exception, e:
             log.error('%s: %s', ds0.device, e)
             returnValue(None)
@@ -272,7 +272,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         #import pprint
         #pprint.pprint(perf_dict)
 
-        interval = 20	# this is in seconds
+        interval = 20    # this is in seconds
 
         # Operators
         ops = {
@@ -340,7 +340,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             try:
                 powerState = vm.runtime.powerState
             except:
-                continue                # go to next VM
+                continue    # go to next VM
             if powerState != 'poweredOn':
                 if powerState == 'poweredOff':
                     adminStatus = 2

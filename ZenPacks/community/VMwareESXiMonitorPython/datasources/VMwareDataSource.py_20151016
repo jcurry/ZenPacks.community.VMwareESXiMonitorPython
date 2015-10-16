@@ -25,8 +25,6 @@ from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 import atexit
 import operator
-from datetime import timedelta, datetime
-
 
 # Setup logging
 import logging
@@ -125,7 +123,6 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                     log.warn('Could not connect to host %s \n' % (host))
                 else:
                     content = conn.RetrieveContent()
-                    vchtime = conn.CurrentTime()
                     # Get VMs
                     vm_view = content.viewManager.CreateContainerView(content.rootFolder,
                                                                       [vim.VirtualMachine],
@@ -154,7 +151,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
 
                     vpm = vim.PerformanceManager
 
-                    return vchtime, hosts, vms, datastores, perfManager, vpm
+                    return hosts, vms, datastores, perfManager, vpm
             except:
                 log.warn('Failed to get data from host %s\n' % (host))
 
@@ -171,11 +168,11 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             returnValue(None)
         port = 443
         try:
-            vchtime, hosts, vms, datastores, perfManager, vpm  = yield getData(ds0.manageIp, ds0.zVSphereUsername, ds0.zVSpherePassword, port, log)
+            hosts, vms, datastores, perfManager, vpm  = yield getData(ds0.manageIp, ds0.zVSphereUsername, ds0.zVSpherePassword, port, log)
         except Exception, e:
             log.error('%s: %s', ds0.device, e)
             returnValue(None)
-        returnValue({'vchtime': vchtime, 'hosts':hosts, 'vms':vms, 'datastores':datastores, 'perfManager':perfManager, 'vpm': vpm})
+        returnValue({'hosts':hosts, 'vms':vms, 'datastores':datastores, 'perfManager':perfManager, 'vpm': vpm})
 
     def onResult(self, result, config):
         """
@@ -229,7 +226,6 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         """
 
         #log.debug( 'In success - result is %s and config is %s ' % (result, config))
-        vchtime = result['vchtime']
         vms = result['vms']
         hosts = result['hosts']
         datastores = result['datastores']
@@ -246,13 +242,11 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                     return k
             return 
 
-        def BuildQuery(perfManager, vchtime, counterId, instance, host, interval):
-            # Note that vim.PerformanceManager.QuerySpec returns a list - albeit of 1 sample 
+        def BuildQuery(perfManager, counterId, instance, host, interval):
+            # Note that vim.PerformanceManager.QuerySpec returns a list - albeit of 1 sample with maxSample=1
             metricId = vpm.MetricId(counterId=counterId, instance=instance)
             #log.debug(' counterId is %s and host is %s  and metricId is %s \n' % (counterId, host, metricId))
-            startTime = vchtime - timedelta(seconds=60)
-            endTime = vchtime - timedelta(seconds=40)
-            query = vpm.QuerySpec(intervalId=interval, entity=host, metricId=[metricId], startTime=startTime, endTime=endTime)
+            query = vpm.QuerySpec(intervalId=interval, entity=host, metricId=[metricId], maxSample=1)
             perfResults = perfManager.QueryPerf(querySpec=[query])
             if perfResults:
                 return perfResults
@@ -273,6 +267,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         #pprint.pprint(perf_dict)
 
         interval = 20	# this is in seconds
+        #interval = 300
 
         # Operators
         ops = {
@@ -309,7 +304,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             log.debug('Host is %s name is %s \n' % (host, host.name))
             for dataPoint, dataPointData in hostDataPoints.iteritems():
                 # Note that BuildQuery will return a list so need to use sum function
-                perfResults = BuildQuery(perfManager, vchtime, (StatCheck(perf_dict, dataPointData['counterName'])), "", host, interval)
+                perfResults = BuildQuery(perfManager, (StatCheck(perf_dict, dataPointData['counterName'])), "", host, interval)
                 opType = dataPointData['opType']
                 factor = dataPointData['factor']
                 if perfResults:
@@ -352,7 +347,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                 dataGuest['operStatus'] = 0
             else:
                 for dataPoint, dataPointData in guestDataPoints.iteritems():
-                    perfResults = BuildQuery(perfManager, vchtime, (StatCheck(perf_dict, dataPointData['counterName'])), "", vm, interval)
+                    perfResults = BuildQuery(perfManager, (StatCheck(perf_dict, dataPointData['counterName'])), "", vm, interval)
                     opType = dataPointData['opType']
                     factor = dataPointData['factor']
                     if perfResults:

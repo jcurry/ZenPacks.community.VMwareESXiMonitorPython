@@ -21,8 +21,8 @@ from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 import atexit
 import sys
-#from datetime import timedelta, datetime
-import datetime
+from datetime import timedelta, datetime
+#import datetime
 
 import pprint
 
@@ -68,7 +68,7 @@ def StatCheck(perf_dict, counter_name):
     counter_key = perf_dict[counter_name]
     return counter_key
 
-def BuildQuery(perfManager, counterId, instance, host, interval):
+def BuildQueryMaxSample(perfManager, counterId, instance, host, interval):
     # Note that vim.PerformanceManager.QuerySpec returns a list - albeit of 1 sample with maxSample=1
 
     metricId = vim.PerformanceManager.MetricId(counterId=counterId, instance=instance)
@@ -76,6 +76,26 @@ def BuildQuery(perfManager, counterId, instance, host, interval):
 
 
     query = vim.PerformanceManager.QuerySpec(intervalId=interval, entity=host, metricId=[metricId], maxSample=1)
+    perfResults = perfManager.QueryPerf(querySpec=[query])
+    if perfResults:
+        return perfResults
+    else:
+        print('ERROR: Performance results empty.  TIP: Check time drift on source and vCenter server')
+        print('Troubleshooting info:')
+        print(query)
+        #exit()
+        return
+
+def BuildQueryVchtime(perfManager, vchtime, counterId, instance, host, interval):
+    # Note that vim.PerformanceManager.QuerySpec returns a list - albeit of 1 sample with maxSample=1
+
+    metricId = vim.PerformanceManager.MetricId(counterId=counterId, instance=instance)
+    #print(' counterId is %s and host is %s  and metricId is %s \n' % (counterId, host, metricId))
+    startTime = vchtime - timedelta(seconds=60)
+    endTime = vchtime - timedelta(seconds=40)
+
+    #query = vim.PerformanceManager.QuerySpec(intervalId=interval, entity=host, metricId=[metricId], maxSample=1)
+    query = vim.PerformanceManager.QuerySpec(intervalId=interval, entity=host, metricId=[metricId], startTime=startTime, endTime=endTime)
     perfResults = perfManager.QueryPerf(querySpec=[query])
     if perfResults:
         return perfResults
@@ -98,15 +118,16 @@ def main():
                                    port=443)
     atexit.register(Disconnect, serviceInstance)
     content = serviceInstance.RetrieveContent()
+    vchtime = serviceInstance.CurrentTime()
+
     hosts = GetVMHosts(content)
     perfManager = content.perfManager
-    print(' ------------ End of perfManager--------------')
+    #print(' ------------ End of perfManager--------------')
     perfCounters = perfManager.perfCounter
     #print(' perfCounter is %s \n' % (perfCounters))
 
    # Get all the performance counters
     perf_dict = {}
-    #perfList = content.perfManager.perfCounter
     perfList = perfManager.perfCounter
     for counter in perfList:
         counter_full = "{}.{}.{}".format(counter.groupInfo.key, counter.nameInfo.key, counter.rollupType)
@@ -118,70 +139,89 @@ def main():
     interval = 20
     print('Hosts is %s \n ' % (hosts))
     for host in hosts:
-        #print('Host Perf provide summary is %s \n' % (perfManager.QueryPerfProviderSummary(host)))
-        print('Host is %s name is %s \n' % (host, host.name))
-
-        # Note that BuildQuery will return a list so need to use sum function
-
-        statSysUpTime = BuildQuery(perfManager, (StatCheck(perf_dict, 'sys.uptime.latest')), "", host, interval)
-        if statSysUpTime:
-            #print('statSysUpTime is %s \n' % (statSysUpTime))
-            sysUpTime = float(sum(statSysUpTime[0].value[0].value))
-            print(' sysUpTime is %s \n' % (sysUpTime))
-
-        statCpuUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.average')), "", host, interval)
-        if statCpuUsage:
-            cpuUsage = (float(sum(statCpuUsage[0].value[0].value))  / 100)
-            print(' cpuUsage is %s \n' % (cpuUsage))
-
-        statMemoryActive = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.active.maximum')), "", host, interval)
-        if statMemoryActive:
-            MemoryActive = (float(sum(statMemoryActive[0].value[0].value)) * 1024)
-            print(' MemoryActive is %s \n' % (MemoryActive))
-            
+        #if host.name == 'swiesxi6.steinwall.lan':
+	    #print('Host Perf provide summary is %s \n' % (perfManager.QueryPerfProviderSummary(host)))
+	    print('Host is %s name is %s \n' % (host, host.name))
+	    # Note that BuildQuery will return a list so need to use sum function
+	    statSysUpTimeMaxSample = BuildQueryMaxSample(perfManager, (StatCheck(perf_dict, 'sys.uptime.latest')), "", host, interval)
+	    statSysUpTimeVchtime = BuildQueryVchtime(perfManager, vchtime, (StatCheck(perf_dict, 'sys.uptime.latest')), "", host, interval)
+	    if statSysUpTimeMaxSample and statSysUpTimeVchtime:
+		#print('statSysUpTime is %s \n' % (statSysUpTime))
+		sysUpTimeMaxSample = float(sum(statSysUpTimeMaxSample[0].value[0].value))
+		sysUpTimeVchtime = float(sum(statSysUpTimeVchtime[0].value[0].value))
+		print(' sysUpTimeMaxSample is %s  and sysUpTimeVchtime is %s \n' % (sysUpTimeMaxSample, sysUpTimeVchtime))
+	    statCpuUsageVchtime = BuildQueryVchtime(perfManager, vchtime, (StatCheck(perf_dict, 'cpu.usage.average')), "", host, interval)
+	    statCpuUsageMaxSample = BuildQueryMaxSample(perfManager, (StatCheck(perf_dict, 'cpu.usage.average')), "", host, interval)
+	    if statCpuUsageMaxSample and statCpuUsageVchtime:
+		cpuUsageMaxSample = (float(sum(statCpuUsageMaxSample[0].value[0].value))  / 100)
+		cpuUsageVchtime = (float(sum(statCpuUsageVchtime[0].value[0].value))  / 100)
+		print(' cpuUsageMaxSample is %s and cpuUsageVchtime is %s \n' % (cpuUsageMaxSample, cpuUsageVchtime))
+	    statMemoryActiveVchtime = BuildQueryVchtime(perfManager, vchtime, (StatCheck(perf_dict, 'mem.active.maximum')), "", host, interval)
+	    statMemoryActiveMaxSample = BuildQueryMaxSample(perfManager, (StatCheck(perf_dict, 'mem.active.maximum')), "", host, interval)
+	    if statMemoryActiveMaxSample and statMemoryActiveVchtime:
+		MemoryActiveMaxSample = (float(sum(statMemoryActiveMaxSample[0].value[0].value)) * 1024)
+		MemoryActiveVchtime = (float(sum(statMemoryActiveVchtime[0].value[0].value)) * 1024)
+		print(' MemoryActiveMaxSample is %s and MemoryActiveVchtime is %s  \n' % (MemoryActiveMaxSample, MemoryActiveVchtime))
+		
 
     vms = GetVMs(content)
 
     print(' ---------Virtual Machines-----------')
     for vm in vms:
-        print('VM is %s name is %s \n' % (vm, vm.name))
-        print('VM runtime.powerState is %s \n' % (vm.runtime.powerState))
-        print('VM summary.overallStatus is %s \n' % (vm.summary.overallStatus))
+        #print('VM is %s name is %s \n' % (vm, vm.name))
+        #print('VM runtime.powerState is %s \n' % (vm.runtime.powerState))
+        #print('VM summary.overallStatus is %s \n' % (vm.summary.overallStatus))
         #print('VM Perf provide summary is %s \n' % (perfManager.QueryPerfProviderSummary(vm)))
-        if vm.runtime.powerState == 'poweredOn':
-            statSysUpTime = BuildQuery(perfManager, (StatCheck(perf_dict, 'sys.uptime.latest')), "", vm, interval)
-            if statSysUpTime:
-                sysUpTime = float(sum(statSysUpTime[0].value[0].value))
-                print(' sysUpTime is %s \n' % (sysUpTime))
+        #if vm.runtime.powerState == 'poweredOn' and  vm.name == 'SWIDVM33':
+        if vm.runtime.powerState == 'poweredOn' and 'SWIDVM3' in vm.name:
+            print('VM is %s name is %s \n' % (vm, vm.name))
+            print('VM runtime.powerState is %s \n' % (vm.runtime.powerState))
+            print('VM summary.overallStatus is %s \n' % (vm.summary.overallStatus))
+            statSysUpTimeVchtime = BuildQueryVchtime(perfManager, vchtime, (StatCheck(perf_dict, 'sys.uptime.latest')), "", vm, interval)
+            statSysUpTimeMaxSample = BuildQueryMaxSample(perfManager, (StatCheck(perf_dict, 'sys.uptime.latest')), "", vm, interval)
+            if statSysUpTimeMaxSample and statSysUpTimeVchtime:
+                sysUpTimeMaxSample = float(sum(statSysUpTimeMaxSample[0].value[0].value))
+                sysUpTimeVchtime = float(sum(statSysUpTimeVchtime[0].value[0].value))
+                print(' sysUpTimeMaxSample is %s and sysUpTimeVchtime is %s \n' % (sysUpTimeMaxSample, sysUpTimeVchtime))
 
-            statCpuUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usagemhz.average')), "", vm, interval)
-            if statCpuUsage:
-                cpuUsage = (float(sum(statCpuUsage[0].value[0].value))  * 1000000)
-                print(' cpuUsage is %s \n' % (cpuUsage))
+            statCpuUsageVchtime = BuildQueryVchtime(perfManager, vchtime, (StatCheck(perf_dict, 'cpu.usagemhz.average')), "", vm, interval)
+            statCpuUsageMaxSample = BuildQueryMaxSample(perfManager, (StatCheck(perf_dict, 'cpu.usagemhz.average')), "", vm, interval)
+            if statCpuUsageMaxSample and statCpuUsageVchtime:
+                cpuUsageMaxSample = (float(sum(statCpuUsageMaxSample[0].value[0].value))  * 1000000)
+                cpuUsageVchtime = (float(sum(statCpuUsageVchtime[0].value[0].value))  * 1000000)
+                print(' cpuUsageMaxSample is %s and cpuUsagVchtime is %s \n' % (cpuUsageMaxSample, cpuUsageVchtime))
 
-            statCpuUsageAvg = BuildQuery(perfManager, (StatCheck(perf_dict, 'cpu.usage.average')), "", vm, interval)
-            if statCpuUsageAvg:
-                cpuUsageAvg = (float(sum(statCpuUsageAvg[0].value[0].value))  / 100)
-                print(' cpuUsageAvg is %s \n' % (cpuUsageAvg))
+            statCpuUsageAvgVchtime = BuildQueryVchtime(perfManager, vchtime, (StatCheck(perf_dict, 'cpu.usage.average')), "", vm, interval)
+            statCpuUsageAvgMaxSample = BuildQueryMaxSample(perfManager, (StatCheck(perf_dict, 'cpu.usage.average')), "", vm, interval)
+            if statCpuUsageAvgMaxSample and statCpuUsageAvgVchtime:
+                cpuUsageAvgMaxSample = (float(sum(statCpuUsageAvgMaxSample[0].value[0].value))  / 100)
+                cpuUsageAvgVchtime = (float(sum(statCpuUsageAvgVchtime[0].value[0].value))  / 100)
+                print(' cpuUsageAvgMaxSample is %s  and cpuUsageAvgVchtime is %s \n' % (cpuUsageAvgMaxSample, cpuUsageAvgVchtime))
 
-            statMemUsage = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.usage.minimum')), "", vm, interval)
-            if statMemUsage:
+            statMemUsageVchtime = BuildQueryVchtime(perfManager, vchtime, (StatCheck(perf_dict, 'mem.usage.minimum')), "", vm, interval)
+            statMemUsageMaxSample = BuildQueryMaxSample(perfManager, (StatCheck(perf_dict, 'mem.usage.minimum')), "", vm, interval)
+            if statMemUsageMaxSample and statMemUsageVchtime:
                 #print(' statMemUsage is %s \n' % (statMemUsage))
-                memUsage = (float(sum(statMemUsage[0].value[0].value)) / 100)
-                print(' memUsage is %s \n' % (memUsage))
+                memUsageMaxSample = (float(sum(statMemUsageMaxSample[0].value[0].value)) / 100)
+                memUsageVchtime = (float(sum(statMemUsageVchtime[0].value[0].value)) / 100)
+                print(' memUsageMaxSample is %s and memUsageVchtime is %s \n' % (memUsageMaxSample, memUsageVchtime))
 
-            statMemConsumed = BuildQuery(perfManager, (StatCheck(perf_dict, 'mem.consumed.minimum')), "", vm, interval)
-            if statMemConsumed:
-                memConsumed = (float(sum(statMemConsumed[0].value[0].value)) * 1024)
-                print(' memConsumed is %s \n' % (memConsumed))
+            statMemConsumedVchtime = BuildQueryVchtime(perfManager, vchtime, (StatCheck(perf_dict, 'mem.consumed.minimum')), "", vm, interval)
+            statMemConsumedMaxSample = BuildQueryMaxSample(perfManager, (StatCheck(perf_dict, 'mem.consumed.minimum')), "", vm, interval)
+            if statMemConsumedMaxSample and statMemConsumedVchtime:
+                memConsumedMaxSample = (float(sum(statMemConsumedMaxSample[0].value[0].value)) * 1024)
+                memConsumedVchtime = (float(sum(statMemConsumedVchtime[0].value[0].value)) * 1024)
+                print(' memConsumedMaxSample is %s and memConsumedVchtime is %s \n' % (memConsumedMaxSample, memConsumedVchtime))
                 
     datastores = GetDatastores(content)
 
+    """
     print(' ---------Datastores -----------')
     for datastore in datastores:
         print('Datastore is %s name is %s \n' % (datastore, datastore.name))
         print('Datastore accessible is  %s  \n' % (datastore.summary.accessible))
         print('Datastore diskFreeSpace is  %s  \n' % (datastore.summary.freeSpace))
+    """
 
 # Main section
 if __name__ == "__main__":

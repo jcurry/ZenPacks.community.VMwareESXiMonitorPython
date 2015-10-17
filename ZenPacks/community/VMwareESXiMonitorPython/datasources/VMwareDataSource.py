@@ -236,36 +236,27 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         perfManager = result['perfManager']
         vpm = result['vpm']
 
-        def StatCheck(perf_dict, counter_name):
-            counter_key = perf_dict[counter_name]
-            return counter_key
-
-        def lookupCounterName(perf_dict, counter_key):
-            for k, v in perf_dict.items():
-                if v == counter_key:
-                    return k
-            return 
-
-        def BuildQuery(perfManager, vchtime, counterId, instance, host, interval):
-            # Note that vim.PerformanceManager.QuerySpec returns a list - albeit of 1 sample 
+        def buildQuery(perfManager, perf_dict, vchtime, counterName, instance, entity, interval):
+            # Note that vim.PerformanceManager.QuerySpec returns a list - albeit of 1 sample
+            counterId = perf_dict.get(counterName)
+            if not counterId:
+                log.error('Invalid counter name: %s \n' % (counterName))
+                return
             metricId = vpm.MetricId(counterId=counterId, instance=instance)
-            #log.debug(' counterId is %s and host is %s  and metricId is %s \n' % (counterId, host, metricId))
             startTime = vchtime - timedelta(seconds=60)
             endTime = vchtime - timedelta(seconds=40)
-            query = vpm.QuerySpec(intervalId=interval, entity=host, metricId=[metricId], startTime=startTime, endTime=endTime)
+            query = vpm.QuerySpec(intervalId=interval, entity=entity, metricId=[metricId], startTime=startTime, endTime=endTime)
             perfResults = perfManager.QueryPerf(querySpec=[query])
             if perfResults:
                 return perfResults
             else:
-                log.info('ERROR: Performance results empty.  TIP: Check time drift on source and vCenter server')
-                counter_name = lookupCounterName(perf_dict, counterId)
-                log.info('Troubleshooting info: host is %s and counter name is %s \n' % (host.name, counter_name))
+                log.error('Performance results empty. TIP: Check time drift on source and vCenter server')
+                log.error('Troubleshooting info: Entity is %s and counter name is %s \n' % (entity.name, counterName))
                 return
 
         # Get all the performance counters
         perf_dict = {}
-        perfList = perfManager.perfCounter
-        for counter in perfList:
+        for counter in perfManager.perfCounter:
             counter_full = "{}.{}.{}".format(counter.groupInfo.key, counter.nameInfo.key, counter.rollupType)
             perf_dict[counter_full] = counter.key
         #print('-------perf Dict --------')
@@ -308,8 +299,8 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         for host in hosts:
             log.debug('Host is %s name is %s \n' % (host, host.name))
             for dataPoint, dataPointData in hostDataPoints.iteritems():
-                # Note that BuildQuery will return a list so need to use sum function
-                perfResults = BuildQuery(perfManager, vchtime, (StatCheck(perf_dict, dataPointData['counterName'])), "", host, interval)
+                # Note that buildQuery will return a list so need to use sum function
+                perfResults = buildQuery(perfManager, perf_dict, vchtime, dataPointData['counterName'], "", host, interval)
                 opType = dataPointData['opType']
                 factor = dataPointData['factor']
                 if perfResults:
@@ -335,7 +326,6 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         dataGuests = {}
         for vm in vms:
             log.debug('vm is %s name is %s \n' % (vm, vm.name))
-            # Note that BuildQuery will return a list so need to use sum function
             dataGuest = {}
             try:
                 powerState = vm.runtime.powerState
@@ -352,7 +342,8 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                 dataGuest['operStatus'] = 0
             else:
                 for dataPoint, dataPointData in guestDataPoints.iteritems():
-                    perfResults = BuildQuery(perfManager, vchtime, (StatCheck(perf_dict, dataPointData['counterName'])), "", vm, interval)
+                    # Note that buildQuery will return a list so need to use sum function
+                    perfResults = buildQuery(perfManager, perf_dict, vchtime, dataPointData['counterName'], "", vm, interval)
                     opType = dataPointData['opType']
                     factor = dataPointData['factor']
                     if perfResults:

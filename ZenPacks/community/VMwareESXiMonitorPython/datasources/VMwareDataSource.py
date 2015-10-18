@@ -248,11 +248,25 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             query = vpm.QuerySpec(intervalId=interval, entity=entity, metricId=[metricId], startTime=startTime, endTime=endTime)
             perfResults = perfManager.QueryPerf(querySpec=[query])
             if perfResults:
-                return perfResults
+                # Note that QueryPerf will return a list so need to use sum function
+                return float(sum(perfResults[0].value[0].value))
             else:
                 log.error('Performance results empty. TIP: Check time drift on source and vCenter server')
                 log.error('Troubleshooting info: Entity is %s and counter name is %s \n' % (entity.name, counterName))
                 return
+
+        def calculateValue(perfValue, opType, factor):
+            # Operators
+            ops = {
+                "+": operator.add,
+                "-": operator.sub,
+                "*": operator.mul,
+                "/": operator.div
+            }
+            if opType and factor:
+                opFunction = ops[opType]
+                perfValue = opFunction(perfValue, float(factor))
+            return perfValue
 
         # Get all the performance counters
         perf_dict = {}
@@ -264,14 +278,6 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         #pprint.pprint(perf_dict)
 
         interval = 20    # this is in seconds
-
-        # Operators
-        ops = {
-            "+": operator.add,
-            "-": operator.sub,
-            "*": operator.mul,
-            "/": operator.div
-        }
 
         # Get values for required datapoints into a dictionary
         # Hosts
@@ -299,17 +305,9 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         for host in hosts:
             log.debug('Host is %s name is %s \n' % (host, host.name))
             for dataPoint, dataPointData in hostDataPoints.iteritems():
-                # Note that buildQuery will return a list so need to use sum function
-                perfResults = buildQuery(perfManager, perf_dict, vchtime, dataPointData['counterName'], "", host, interval)
-                opType = dataPointData['opType']
-                factor = dataPointData['factor']
-                if perfResults:
-                    if opType and factor:
-                        opFunction = ops[opType]
-                        perfValue = opFunction(float(sum(perfResults[0].value[0].value)), float(factor))
-                    else:
-                        perfValue = float(sum(perfResults[0].value[0].value))
-                    dataHosts[dataPoint] = perfValue
+                perfValue = buildQuery(perfManager, perf_dict, vchtime, dataPointData['counterName'], "", host, interval)
+                if perfValue:
+                    dataHosts[dataPoint] = calculateValue(perfValue, dataPointData['opType'], dataPointData['factor'])
 
         # Guest VMs
         guestDataPoints = {
@@ -342,17 +340,9 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                 dataGuest['operStatus'] = 0
             else:
                 for dataPoint, dataPointData in guestDataPoints.iteritems():
-                    # Note that buildQuery will return a list so need to use sum function
-                    perfResults = buildQuery(perfManager, perf_dict, vchtime, dataPointData['counterName'], "", vm, interval)
-                    opType = dataPointData['opType']
-                    factor = dataPointData['factor']
-                    if perfResults:
-                        if opType and factor:
-                            opFunction = ops[opType]
-                            perfValue = opFunction(float(sum(perfResults[0].value[0].value)), float(factor))
-                        else:
-                            perfValue = float(sum(perfResults[0].value[0].value))
-                        dataGuest[dataPoint] = perfValue
+                    perfValue = buildQuery(perfManager, perf_dict, vchtime, dataPointData['counterName'], "", vm, interval)
+                    if perfValue:
+                        dataGuest[dataPoint] = calculateValue(perfValue, dataPointData['opType'], dataPointData['factor'])
 
                 overallStatus = vm.summary.overallStatus
                 if overallStatus == 'green':

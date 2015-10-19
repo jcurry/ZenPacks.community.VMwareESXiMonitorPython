@@ -177,14 +177,19 @@ Requirements & Dependencies
       appear to be able to ignore these.
 
 
-      * The pyvmomi Python vSphere SDK must be installed (as the zenoss user).  With Zenoss 4.2.5 it appears 
+      * The pyvmomi Python vSphere SDK is required. With Zenoss 4.2.5 it appears
         essential to get the older version 5.5.0 otherwise errors result trying to find elements of urllib.
-        From pypi (https://pypi.python.org/pypi/pyvmomi ) follow the "5.5.0" link to download the
-        zip file.  Unzip the file. Change directory into the pyvmomi-5.5.0 directory.  Install with:
+        pyvmomi-5.5.0-py2.7.egg is now included in the zenpack's lib directory and lines are added to the zenpack's
+        __init__.py so that the zenoss libdir has this file appended.  There is no need to separately install
+        pyvmomi unless you wish to.
+
+        If you do wish to install pyvmomi independently:
+          * From pypi (https://pypi.python.org/pypi/pyvmomi ) follow the "5.5.0" link to download the
+            zip file.  Unzip the file. Change directory into the pyvmomi-5.5.0 directory.  Install with:
 
                 python setup.py install
 
-        A copy of the pyvmomi-5.5.0.zip file is in the lib directory of the ZenPack.        
+          * A copy of the pyvmomi-5.5.0.zip file is in the lib directory of the ZenPack.        
         
         To test that the SDK is installed use:
       *  python
@@ -251,7 +256,7 @@ NOTE: Any existing local templates created for ESXi devices or their components 
 * Completely restart Zenoss
 * Ensure the PythonCollector ZenPack is at at least version 1.6  
 * Check whether PyYAML is installed.  If not, install it.  See notes above.
-* Install pyvmomi - see notes above.
+* Install pyvmomi if required as an independent package; not actually necessary for the ZenPack to work - see notes above.
 * Install new ZenPack
 * Completely restart Zenoss
 * Set zVSphereUsername / zVSpherePassword in device / device classes  
@@ -267,6 +272,10 @@ Change History
    * With Matthias improvements to datasource, /VMware Reports included in objects.xml, status renderer corrected,
      performanceSource and instance attributes of datasource removed, modelers moved from cmd subdirectory to python
      subdirectory, esxiHostName attribute removed from ESXiHost device object.
+* 3.0.2
+   * Various tidying up of datasource. Include pyvmomi-5.5.0-py2.7.egg in lib directory and __init__.py modified
+     so libdir includes these pyvmomi libraries.
+
 
 Screenshots
 ===========
@@ -276,7 +285,7 @@ See the screenshots directory.
 
 .. External References Below. Nothing Below This Line Should Be Rendered
 
-.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.1-py2.7.egg?raw=true
+.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.2-py2.7.egg?raw=true
 
 
 Acknowledgements

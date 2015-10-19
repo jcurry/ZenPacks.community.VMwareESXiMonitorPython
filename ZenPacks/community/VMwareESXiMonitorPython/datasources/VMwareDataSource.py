@@ -25,7 +25,7 @@ from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 import atexit
 import operator
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 
 # Setup logging
@@ -117,7 +117,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
     @inlineCallbacks
     def collect(self, config):
 
-        def getData(host, user, password, port):
+        def getData(host, user, password, port, log):
         # make a connection
             try:
                 conn = SmartConnect(host=host, user=user, pwd=password, port=port)
@@ -171,7 +171,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             returnValue(None)
         port = 443
         try:
-            vchtime, hosts, vms, datastores, perfManager, vpm  = yield getData(ds0.manageIp, ds0.zVSphereUsername, ds0.zVSpherePassword, port)
+            vchtime, hosts, vms, datastores, perfManager, vpm  = yield getData(ds0.manageIp, ds0.zVSphereUsername, ds0.zVSpherePassword, port, log)
         except Exception, e:
             log.error('%s: %s', ds0.device, e)
             returnValue(None)

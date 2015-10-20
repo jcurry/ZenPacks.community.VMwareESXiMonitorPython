@@ -183,6 +183,14 @@ Requirements & Dependencies
         __init__.py so that the zenoss libdir has this file appended.  There is no need to separately install
         pyvmomi unless you wish to.
 
+        Once the ZenPack is installed, you can test that pyvmomi is accessible with:
+          * zendmd
+          *  import pyVmomi
+          *  pyVmomi
+          *   
+          * <module 'pyVmomi' from '/opt/zenoss/local/ZenPacks.community.VMwareESXiMonitorPython/ZenPacks/community/VMwareESXiMonitorPython/lib/pyvmomi-5.5.0-py2.7.egg/pyVmomi/__init__.py'>
+
+
         If you do wish to install pyvmomi independently:
           * From pypi (https://pypi.python.org/pypi/pyvmomi ) follow the "5.5.0" link to download the
             zip file.  Unzip the file. Change directory into the pyvmomi-5.5.0 directory.  Install with:

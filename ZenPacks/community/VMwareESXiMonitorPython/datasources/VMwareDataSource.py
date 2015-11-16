@@ -268,6 +268,22 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                 perfValue = opFunction(perfValue, float(factor))
             return perfValue
 
+        def componentPerfData(ds, dataEntities, data):
+            if ds.params['isMonitored']:
+                for entity, entityData in dataEntities.iteritems():
+                    if entity == ds.component:
+                        for datapoint_id in (x.id for x in ds.points):
+                            if not entityData.has_key(datapoint_id):
+                                continue
+                            try:
+                                value = entityData[datapoint_id]
+                            except Exception, e:
+                                log.error('Failed to get value datapoint for ESXi component %s, error is %s' % (entity, e))
+                                continue
+                            dpname = '_'.join((ds.datasource, datapoint_id))
+                            data['values'][ds.component][dpname] = (value, 'N')
+            return data
+
         # Get all the performance counters
         perf_dict = {}
         for counter in perfManager.perfCounter:
@@ -302,12 +318,21 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         }
 
         dataHosts = {}
+        dataInterfaces = {}
         for host in hosts:
             log.debug('Host is %s name is %s \n' % (host, host.name))
             for dataPoint, dataPointData in hostDataPoints.iteritems():
                 perfValue = buildQuery(perfManager, perf_dict, vchtime, dataPointData['counterName'], "", host, interval)
                 if perfValue:
                     dataHosts[dataPoint] = calculateValue(perfValue, dataPointData['opType'], dataPointData['factor'])
+
+            for interface in host.config.network.pnic:
+                dataInterface = {}
+                if interface.linkSpeed:
+                    dataInterface['operStatus'] = 1
+                else:
+                    dataInterface['operStatus'] = 2
+                dataInterfaces[interface.device] = dataInterface
 
         # Guest VMs
         guestDataPoints = {
@@ -330,12 +355,11 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             except:
                 continue    # go to next VM
             if powerState != 'poweredOn':
+                adminStatus = 0
                 if powerState == 'poweredOff':
                     adminStatus = 2
                 elif powerState == 'suspended':
                     adminStatus = 3
-                else:
-                    adminStatus = 0
                 dataGuest['adminStatus'] = adminStatus
                 dataGuest['operStatus'] = 0
             else:
@@ -345,14 +369,13 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                         dataGuest[dataPoint] = calculateValue(perfValue, dataPointData['opType'], dataPointData['factor'])
 
                 overallStatus = vm.summary.overallStatus
+                operStatus = 0
                 if overallStatus == 'green':
                     operStatus = 1
                 elif overallStatus == 'red':
                     operStatus = 2
                 elif overallStatus == 'yellow':
                     operStatus = 3
-                else:
-                    operStatus = 0
                 dataGuest['adminStatus'] = 1
                 dataGuest['operStatus'] = operStatus
             dataGuests[vm.name] = dataGuest
@@ -360,7 +383,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         # Datastores
         dataDatastores = {}
         for datastore in datastores:
-            log.debug('datastore is %s name is %s \n' % (datastore, datastore.name))
+            log.debug('datastore is %s name is %s \n' % (datastore, datastore.summary.name))
             dataDatastore = {}
             if datastore.summary.accessible:
                 dataDatastore['diskFreeSpace'] = datastore.summary.freeSpace
@@ -368,10 +391,11 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             else:    
                 dataDatastore['diskFreeSpace'] = None
                 dataDatastore['connectionStatus'] = 2
-            dataDatastores[datastore.name] = dataDatastore
+            dataDatastores[datastore.summary.name] = dataDatastore
 
         #log.debug(' dataHosts is %s \n' % (dataHosts))
-        log.debug(' dataGuests is %s \n' % (dataGuests))
+        #log.debug(' dataGuests is %s \n' % (dataGuests))
+        log.debug(' dataInterfaces is %s \n' % (dataInterfaces))
         #log.debug(' dataDatastores is %s \n' % (dataDatastores))
 
         data = self.new_data()
@@ -393,34 +417,13 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                         data['values'][ds.component][dpname] = (value, 'N')
 
             elif ds.datasource == 'VMwareGuest':
-                if ds.params['isMonitored']:
-                    for vm, vmdata in dataGuests.iteritems():
-                        if vm == ds.component:
-                            for datapoint_id in (x.id for x in ds.points):
-                                if not vmdata.has_key(datapoint_id):
-                                    continue
-                                try:
-                                    value = vmdata[datapoint_id]
-                                except Exception, e:
-                                    log.error('Failed to get value datapoint for ESXi Guest, error is %s' % (e))
-                                    continue
-                                dpname = '_'.join((ds.datasource, datapoint_id))
-                                data['values'][ds.component][dpname] = (value, 'N')
+                data = componentPerfData(ds, dataGuests, data)
 
             elif ds.datasource == 'VMwareDatastore':
-                if ds.params['isMonitored']:
-                    for datastore, datastoredata in dataDatastores.iteritems():
-                        if datastore == ds.component:
-                            for datapoint_id in (x.id for x in ds.points):
-                                if not datastoredata.has_key(datapoint_id):
-                                    continue
-                                try:
-                                    value = datastoredata[datapoint_id]
-                                except Exception, e:
-                                    log.error('Failed to get value datapoint for ESXi Datastore, error is %s' % (e))
-                                    continue
-                                dpname = '_'.join((ds.datasource, datapoint_id))
-                                data['values'][ds.component][dpname] = (value, 'N')
+                data = componentPerfData(ds, dataDatastores, data)
+
+            elif ds.datasource == 'VMwareInterface':
+                data = componentPerfData(ds, dataInterfaces, data)
 
             else:
                 log.error('Unknown data source: %s' % (ds.datasource))

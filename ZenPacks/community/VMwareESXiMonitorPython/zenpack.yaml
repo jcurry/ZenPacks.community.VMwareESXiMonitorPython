@@ -20,40 +20,6 @@ device_classes:
         - ESXiHost
 
     templates:
-      ESXiDatastore:
-        description: ""
-        targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiDatastore
-        thresholds:
-          Connection Status:
-            dsnames: [VMwareDatastore_connectionStatus]
-            eventClass: /Conn/Fail
-            minval: '1'
-            maxval: '1'
-          high disk usage:
-            dsnames: [VMwareDatastore_diskFreeSpace]
-            eventClass: /Perf/Filesystem
-            minval: here.capacity * .1
-        datasources:
-          VMwareDatastore:
-            type: VMware
-            datapoints:
-              connectionStatus:
-                rrdmin: 1
-                rrdmax: 2
-              diskFreeSpace: {}
-        graphs:
-          Utilization:
-            units: percent
-            miny: 0
-            maxy: 100
-            graphpoints:
-              diskFreeSpace:
-                dpName: VMwareDatastore_diskFreeSpace
-                lineType: AREA
-                format: '%6.2lf%%'
-                legend: Used
-                rpn: ${here/capacity},/,100,*,100,-,-1,*
-                includeThresholds: true
       ESXiHost:
         description: ""
         targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiHost
@@ -312,13 +278,56 @@ device_classes:
                 dpName: VMwareGuest_diskUsage
                 lineType: AREA
                 legend: Disk Usage
-      ethernetCsmacd:
-        description: Blank template - prevents standard template from trying to collect invalid OIDs
-        targetPythonClass: Products.ZenModel.IpInterface
-
+      ESXiDatastore:
+        description: ""
+        targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiDatastore
+        thresholds:
+          Connection Status:
+            dsnames: [VMwareDatastore_connectionStatus]
+            eventClass: /Conn/Fail
+            minval: '1'
+            maxval: '1'
+          high disk usage:
+            dsnames: [VMwareDatastore_diskFreeSpace]
+            eventClass: /Perf/Filesystem
+            minval: here.capacity * .1
+        datasources:
+          VMwareDatastore:
+            type: VMware
+            datapoints:
+              connectionStatus:
+                rrdmin: 1
+                rrdmax: 2
+              diskFreeSpace: {}
+        graphs:
+          Utilization:
+            units: percent
+            miny: 0
+            maxy: 100
+            graphpoints:
+              diskFreeSpace:
+                dpName: VMwareDatastore_diskFreeSpace
+                lineType: AREA
+                format: '%6.2lf%%'
+                legend: Used
+                rpn: ${here/capacity},/,100,*,100,-,-1,*
+                includeThresholds: true
       ethernetCsmacd:
         description: ""
         targetPythonClass: Products.ZenModel.IpInterface
+        thresholds:
+          Operating Status:
+            type: ValueChangeThreshold
+            dsnames: [VMwareInterface_operStatus]
+            eventClass: /Status/Perf
+            severity: info
+        datasources:
+          VMwareInterface:
+            type: VMware
+            datapoints:
+              operStatus:
+                rrdmin: 1
+                rrdmax: 2
 
 classes:
   DEFAULTS:
@@ -456,4 +465,3 @@ classes:
 class_relationships:
   - ESXiHost(esxiVm) 1:MC ESXiVM(esxiHost)
   - ESXiHost(esxiDatastore) 1:MC ESXiDatastore(esxiHost)
-

@@ -88,18 +88,18 @@ class VMwareESXiInterfaceMap(PythonPlugin):
                 if interface.spec.ip:
                     if interface.spec.ip.ipAddress:
                         interfaceDict['setIpAddresses'] = interface.spec.ip.ipAddress
-                    else:    
+                    else:
                         interfaceDict['setIpAddresses'] = []
                 if interface.linkSpeed:
                     interfaceDict['speed'] = long(interface.linkSpeed.speedMb)
                     interfaceDict['duplex'] = int(interface.linkSpeed.duplex)
-                    interfaceDict['operStatus'] = 1
                     interfaceDict['adminStatus'] = 1
-                else:    
+                    interfaceDict['operStatus'] = 1
+                else:
                     interfaceDict['speed'] = 0
                     interfaceDict['duplex'] = 0
-                    interfaceDict['operStatus'] = 2
                     interfaceDict['adminStatus'] = 2
+                    interfaceDict['operStatus'] = 2
                 interfaces.append(ObjectMap(data=interfaceDict))
                 log.debug(' interfaceDict is %s \n' % (interfaceDict))
             # Get virtual interfaces
@@ -115,12 +115,12 @@ class VMwareESXiInterfaceMap(PythonPlugin):
                 if interface.spec.ip:
                     if interface.spec.ip.ipAddress:
                         interfaceDict['setIpAddresses'] = interface.spec.ip.ipAddress
-                    else:    
+                    else:
                         interfaceDict['setIpAddresses'] = []
-                interfaceDict['speed'] = 0    
-                interfaceDict['duplex'] = 0    
-                interfaceDict['operStatus'] = 1    
-                interfaceDict['adminStatus'] = 1    
+                interfaceDict['speed'] = 0
+                interfaceDict['duplex'] = 0
+                interfaceDict['operStatus'] = 1
+                interfaceDict['adminStatus'] = 1
                 interfaces.append(ObjectMap(data=interfaceDict))
                 log.debug(' interfaceDict is %s \n' % (interfaceDict))
 

@@ -92,6 +92,8 @@ those of the original ZenPack (indeed were generated using "zenpacklib.py dump_t
         * memUsage
 
 
+An ethernetCsmacd template is also supplied for /Server/VMware/ESXi which checks operStatus.
+
 Note that there is a single datasource called VMware that is used for both the ESXiHost device
 and the ESXiVM and ESXiDatastore components.  It is defined in the datasources directory of the
 ZenPack.
@@ -283,6 +285,8 @@ Change History
 * 3.0.2
    * Various tidying up of datasource. Include pyvmomi-5.5.0-py2.7.egg in lib directory and __init__.py modified
      so libdir includes these pyvmomi libraries.
+* 3.0.3
+   * The operating status of all physical network interfaces is now being monitored.
 
 
 Screenshots
@@ -293,7 +297,7 @@ See the screenshots directory.
 
 .. External References Below. Nothing Below This Line Should Be Rendered
 
-.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.2-py2.7.egg?raw=true
+.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.3-py2.7.egg?raw=true
 
 
 Acknowledgements

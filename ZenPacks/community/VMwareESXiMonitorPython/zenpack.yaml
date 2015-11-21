@@ -25,12 +25,12 @@ device_classes:
         targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiHost
         thresholds:
           CPU Critical:
-            dsnames: [VMwareHost_cpuUsageMin, VMwareHost_cpuUsageMax]
+            dsnames: [VMwareHost_cpuUsage]
             eventClass: /Perf/CPU
             severity: crit
             maxval: '90'
           CPU Warning:
-            dsnames: [VMwareHost_cpuUsageMin, VMwareHost_cpuUsageMax]
+            dsnames: [VMwareHost_cpuUsage]
             eventClass: /Perf/CPU
             minval: '90'
             maxval: '80'
@@ -52,11 +52,9 @@ device_classes:
           VMwareHost:
             type: VMware
             datapoints:
+              cpuUsageHz: {}
               cpuReservedcapacity: {}
               cpuUsage: {}
-              cpuUsageAvg: {}
-              cpuUsageMax: {}
-              cpuUsageMin: {}
               diskUsage: {}
               memActive: {}
               memGranted: {}
@@ -73,8 +71,8 @@ device_classes:
           Raw CPU Usage:
             units: Hz
             graphpoints:
-              cpuUsage:
-                dpName: VMwareHost_cpuUsage
+              cpuUsageHz:
+                dpName: VMwareHost_cpuUsageHz
                 legend: CPU Usage
               cpuReservedcapacity:
                 dpName: VMwareHost_cpuReservedcapacity
@@ -84,23 +82,12 @@ device_classes:
             miny: 0
             maxy: 100
             graphpoints:
-              cpuUsageMin:
-                dpName: VMwareHost_cpuUsageMin
+              cpuUsage:
+                dpName: VMwareHost_cpuUsage
                 lineType: AREA
                 format: '%5.2lf%%'
-                legend: CPU Usage (Min)
+                legend: CPU Usage
                 includeThresholds: true
-              cpuUsageMax:
-                dpName: VMwareHost_cpuUsageMax
-                lineType: AREA
-                format: '%5.2lf%%'
-                legend: CPU Usage (Max)
-                includeThresholds: true
-              cpuUsageAvg:
-                dpName: VMwareHost_cpuUsageAvg
-                lineType: AREA
-                format: '%5.2lf%%'
-                legend: CPU Usage (Average)
           Raw Memory Usage:
             units: bytes
             base: true
@@ -180,12 +167,12 @@ device_classes:
         targetPythonClass: ZenPacks.community.VMwareESXiMonitorPython.ESXiVM
         thresholds:
           CPU Critical:
-            dsnames: [VMwareGuest_cpuUsageMin, VMwareGuest_cpuUsageMax]
+            dsnames: [VMwareGuest_cpuUsageMax]
             eventClass: /Perf/CPU
             severity: crit
             maxval: '90'
           CPU Warning:
-            dsnames: [VMwareGuest_cpuUsageMin, VMwareGuest_cpuUsageMax]
+            dsnames: [VMwareGuest_cpuUsageMax]
             eventClass: /Perf/CPU
             minval: '90'
             maxval: '80'
@@ -206,7 +193,7 @@ device_classes:
               adminStatus:
                 rrdmin: 0
                 rrdmax: 3
-              cpuUsage: {}
+              cpuUsageHz: {}
               cpuUsageAvg: {}
               cpuUsageMax: {}
               cpuUsageMin: {}
@@ -221,8 +208,8 @@ device_classes:
           Raw CPU Usage:
             units: Hz
             graphpoints:
-              cpuUsage:
-                dpName: VMwareGuest_cpuUsage
+              cpuUsageHz:
+                dpName: VMwareGuest_cpuUsageHz
                 legend: CPU Usage
           CPU Usage:
             units: percent
@@ -465,3 +452,4 @@ classes:
 class_relationships:
   - ESXiHost(esxiVm) 1:MC ESXiVM(esxiHost)
   - ESXiHost(esxiDatastore) 1:MC ESXiDatastore(esxiHost)
+

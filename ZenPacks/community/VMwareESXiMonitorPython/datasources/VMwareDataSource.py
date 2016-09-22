@@ -138,7 +138,10 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                     datastore_view = content.viewManager.CreateContainerView(content.rootFolder,
                                                                         [vim.Datastore],
                                                                         True)
-                    datastores = [datastore for datastore in datastore_view.view]
+                    datastores = []
+                    for datastore in datastore_view.view:
+                        datastore.RefreshDatastore()
+                        datastores.append(datastore)
                     log.debug(' in getData - datastores is %s \n' % (datastores))
                     datastore_view.Destroy()
 

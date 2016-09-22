@@ -35,7 +35,10 @@ def getData(host, username, password, port, log):
     datastore_view = content.viewManager.CreateContainerView(content.rootFolder,
                                                         [vim.Datastore],
                                                         True)
-    datastores = [datastore for datastore in datastore_view.view]
+    datastores = []
+    for datastore in datastore_view.view:
+        datastore.RefreshDatastore()
+        datastores.append(datastore)
     log.debug(' in getData - datastores is %s \n' % (datastores))
     datastore_view.Destroy()
 
@@ -77,7 +80,6 @@ class VMwareESXiDatastoreMap(PythonPlugin):
             datastoreDict['title'] = datastore.summary.name
             datastoreDict['type'] = datastore.summary.type
             datastoreDict['capacity'] = long(datastore.summary.capacity)
-            #datastoreDict['accessible'] = datastore.summary.accessible
             if not int(datastore.summary.accessible) == 1:
                 log.warning('Datastore %s of device %s is not accessible' % (datastoreDict['id'], device.id))
                 continue

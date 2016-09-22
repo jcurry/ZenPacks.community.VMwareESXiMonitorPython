@@ -138,7 +138,10 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                     datastore_view = content.viewManager.CreateContainerView(content.rootFolder,
                                                                         [vim.Datastore],
                                                                         True)
-                    datastores = [datastore for datastore in datastore_view.view]
+                    datastores = []
+                    for datastore in datastore_view.view:
+                        datastore.RefreshDatastore()
+                        datastores.append(datastore)
                     log.debug(' in getData - datastores is %s \n' % (datastores))
                     datastore_view.Destroy()
 
@@ -299,15 +302,13 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         # Hosts
         hostDataPoints = {
             'sysUpTime': {'counterName': 'sys.uptime.latest', 'opType': '', 'factor': ''},
-            'memUsage': {'counterName': 'mem.usage.minimum', 'opType': '/', 'factor': '100'},
+            'memUsage': {'counterName': 'mem.usage.maximum', 'opType': '/', 'factor': '100'},
             'memSwapused': {'counterName': 'mem.swapused.maximum', 'opType': '*', 'factor': '1024'},
             'memGranted': {'counterName': 'mem.granted.maximum', 'opType': '*', 'factor': '1024'},
             'memActive': {'counterName': 'mem.active.maximum', 'opType': '*', 'factor': '1024'},
-            'diskUsage': {'counterName': 'disk.usage.average', 'opType': '*', 'factor': '1024'},
-            'cpuUsageMin': {'counterName': 'cpu.usage.minimum', 'opType': '/', 'factor': '100'},
-            'cpuUsageMax': {'counterName': 'cpu.usage.maximum', 'opType': '/', 'factor': '100'},
-            'cpuUsageAvg': {'counterName': 'cpu.usage.average', 'opType': '/', 'factor': '100'},
-            'cpuUsage': {'counterName': 'cpu.usagemhz.average', 'opType': '*', 'factor': '1000000'},
+            'diskUsage': {'counterName': 'disk.usage.maximum', 'opType': '*', 'factor': '1024'},
+            'cpuUsage': {'counterName': 'cpu.usage.maximum', 'opType': '/', 'factor': '100'},
+            'cpuUsageHz': {'counterName': 'cpu.usagemhz.maximum', 'opType': '*', 'factor': '1000000'},
             'cpuReservedcapacity': {'counterName': 'cpu.reservedCapacity.average', 'opType': '*', 'factor': '1000000'},
             'netReceived': {'counterName': 'net.received.average', 'opType': '*', 'factor': '8192'},
             'netTransmitted': {'counterName': 'net.transmitted.average', 'opType': '*', 'factor': '8192'},
@@ -343,7 +344,7 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
             'cpuUsageMin': {'counterName': 'cpu.usage.minimum', 'opType': '/', 'factor': '100'},
             'cpuUsageMax': {'counterName': 'cpu.usage.maximum', 'opType': '/', 'factor': '100'},
             'cpuUsageAvg': {'counterName': 'cpu.usage.average', 'opType': '/', 'factor': '100'},
-            'cpuUsage': {'counterName': 'cpu.usagemhz.average', 'opType': '*', 'factor': '1000000'}
+            'cpuUsageHz': {'counterName': 'cpu.usagemhz.average', 'opType': '*', 'factor': '1000000'}
         }
 
         dataGuests = {}
@@ -453,3 +454,4 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
         onSuccess or onError method to be used without further processing.
         """
         return result
+

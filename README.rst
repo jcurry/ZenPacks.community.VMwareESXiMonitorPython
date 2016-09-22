@@ -306,5 +306,3 @@ Acknowledgements
 This ZenPack is an update to the excellent ZenPack developed by Eric Enns and
 Matthias Kittl.
 
-
-

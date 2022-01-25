@@ -286,9 +286,12 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
 
         # Get all the performance counters
         perf_dict = {}
-        for counter in perfManager.perfCounter:
-            counter_full = "{}.{}.{}".format(counter.groupInfo.key, counter.nameInfo.key, counter.rollupType)
-            perf_dict[counter_full] = counter.key
+        if perfManager:
+            for counter in perfManager.perfCounter:
+                counter_full = "{}.{}.{}".format(counter.groupInfo.key, counter.nameInfo.key, counter.rollupType)
+                perf_dict[counter_full] = counter.key
+        else:
+            log.error('perfManager is None. No counters')
         #print('-------perf Dict --------')
         #import pprint
         #pprint.pprint(perf_dict)

@@ -16,7 +16,7 @@ if hasattr(evt, 'vmwVmDisplayName'):
 vmHBDetected
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmHBDetected
@@ -27,7 +27,7 @@ snmp trap vmHBDetected
 vmHBLost
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmHBLost
@@ -38,7 +38,7 @@ snmp trap vmHBLost
 vmPoweredOff
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmPoweredOff
@@ -49,7 +49,7 @@ snmp trap vmPoweredOff
 vmPoweredOn
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmPoweredOn
@@ -60,7 +60,7 @@ snmp trap vmPoweredOn
 vmSuspended
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmSuspended
@@ -71,7 +71,7 @@ snmp trap vmSuspended
 vmwCimOmHeartbeat
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwCimOmHeartbeat
@@ -82,7 +82,7 @@ snmp trap vmwCimOmHeartbeat
 vmwESXEnvBIOSAlert
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwESXEnvBIOSAlert
@@ -93,7 +93,7 @@ snmp trap vmwESXEnvBIOSAlert
 vmwESXEnvBatteryAlert
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwESXEnvBatteryAlert
@@ -104,7 +104,7 @@ snmp trap vmwESXEnvBatteryAlert
 vmwESXEnvChassisAlert
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwESXEnvChassisAlert
@@ -115,7 +115,7 @@ snmp trap vmwESXEnvChassisAlert
 vmwESXEnvDiskAlert
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwESXEnvDiskAlert
@@ -126,7 +126,7 @@ snmp trap vmwESXEnvDiskAlert
 vmwESXEnvHardwareAlert
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwESXEnvHardwareAlert
@@ -137,7 +137,7 @@ snmp trap vmwESXEnvHardwareAlert
 vmwESXEnvHardwareEvent
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwESXEnvHardwareEvent
@@ -148,7 +148,7 @@ snmp trap vmwESXEnvHardwareEvent
 vmwESXEnvMemoryAlert
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwESXEnvMemoryAlert
@@ -159,7 +159,7 @@ snmp trap vmwESXEnvMemoryAlert
 vmwESXEnvPowerAlert
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwESXEnvPowerAlert
@@ -170,7 +170,7 @@ snmp trap vmwESXEnvPowerAlert
 vmwESXEnvProcessorAlert
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwESXEnvProcessorAlert
@@ -181,7 +181,7 @@ snmp trap vmwESXEnvProcessorAlert
 vmwESXEnvThermalAlert
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwESXEnvThermalAlert
@@ -192,7 +192,7 @@ snmp trap vmwESXEnvThermalAlert
 vmwEnvHardwareEvent
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwEnvHardwareEvent
@@ -203,7 +203,7 @@ snmp trap vmwEnvHardwareEvent
 vmwSrmRecoveryPlanExecuteCleanupEnd
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwSrmRecoveryPlanExecuteCleanupEnd
@@ -217,7 +217,7 @@ evt.severity = 2
 vmwVmHBDetected
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwVmHBDetected
@@ -231,7 +231,7 @@ evt.severity = 3
 vmwVmHBLost
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwVmHBLost
@@ -245,7 +245,7 @@ evt.severity = 2
 vmwVmPoweredOff
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwVmPoweredOff
@@ -259,7 +259,7 @@ evt.severity = 2
 vmwVmPoweredOn
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwVmPoweredOn
@@ -273,7 +273,7 @@ evt.severity = 2
 vmwVmSuspended
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwVmSuspended
@@ -284,7 +284,7 @@ snmp trap vmwVmSuspended
 vmwareSrmRecoveryPlanExecuteBeginEvent
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryPlanExecuteBeginEvent
@@ -295,7 +295,7 @@ snmp trap vmwareSrmRecoveryPlanExecuteBeginEvent
 vmwareSrmRecoveryPlanExecuteReprotectBegin
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryPlanExecuteReprotectBegin
@@ -306,7 +306,7 @@ snmp trap vmwareSrmRecoveryPlanExecuteReprotectBegin
 vmwareSrmRecoveryPlanExecuteReprotectEnd
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryPlanExecuteReprotectEnd
@@ -317,7 +317,7 @@ snmp trap vmwareSrmRecoveryPlanExecuteReprotectEnd
 vmwareSrmRecoveryPlanExecuteTestBeginTrap
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryPlanExecuteTestBeginTrap
@@ -328,7 +328,7 @@ snmp trap vmwareSrmRecoveryPlanExecuteTestBeginTrap
 vmwareSrmRecoveryPlanExecuteTestEndEvent
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryPlanExecuteTestEndEvent
@@ -339,7 +339,7 @@ snmp trap vmwareSrmRecoveryPlanExecuteTestEndEvent
 vmwareSrmRecoveryPlanPromptDisplay
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryPlanPromptDisplay
@@ -350,7 +350,7 @@ snmp trap vmwareSrmRecoveryPlanPromptDisplay
 vmwareSrmRecoveryPlanPromptResponse
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryPlanPromptResponse
@@ -361,7 +361,7 @@ snmp trap vmwareSrmRecoveryPlanPromptResponse
 vmwareSrmRecoveryPlanServerCommandEnd
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryPlanServerCommandEnd
@@ -372,7 +372,7 @@ snmp trap vmwareSrmRecoveryPlanServerCommandEnd
 vmwareSrmRecoveryPlanVmCommandBegin
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryPlanVmCommandBegin
@@ -383,7 +383,7 @@ snmp trap vmwareSrmRecoveryPlanVmCommandBegin
 vmwareSrmRecoveryPlanVmCommandEnd
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryPlanVmCommandEnd
@@ -394,7 +394,7 @@ snmp trap vmwareSrmRecoveryPlanVmCommandEnd
 vmwareSrmRecoveryVmEndEvent
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareSrmRecoveryVmEndEvent
@@ -405,7 +405,7 @@ snmp trap vmwareSrmRecoveryVmEndEvent
 vmwareTrapAbnormalityActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapAbnormalityActive
@@ -416,7 +416,7 @@ snmp trap vmwareTrapAbnormalityActive
 vmwareTrapAbnormalityChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapAbnormalityChange
@@ -427,7 +427,7 @@ snmp trap vmwareTrapAbnormalityChange
 vmwareTrapAbnormalityClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapAbnormalityClear
@@ -438,7 +438,7 @@ snmp trap vmwareTrapAbnormalityClear
 vmwareTrapAggregateAnomalyActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapAggregateAnomalyActive
@@ -449,7 +449,7 @@ snmp trap vmwareTrapAggregateAnomalyActive
 vmwareTrapAggregateAnomalyClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapAggregateAnomalyClear
@@ -460,7 +460,7 @@ snmp trap vmwareTrapAggregateAnomalyClear
 vmwareTrapAliveComponentFailureActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapAliveComponentFailureActive
@@ -471,7 +471,7 @@ snmp trap vmwareTrapAliveComponentFailureActive
 vmwareTrapAliveComponentFailureClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapAliveComponentFailureClear
@@ -482,7 +482,7 @@ snmp trap vmwareTrapAliveComponentFailureClear
 vmwareTrapAnomalyActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapAnomalyActive
@@ -493,7 +493,7 @@ snmp trap vmwareTrapAnomalyActive
 vmwareTrapAnomalyChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapAnomalyChange
@@ -504,7 +504,7 @@ snmp trap vmwareTrapAnomalyChange
 vmwareTrapAnomalyClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapAnomalyClear
@@ -515,7 +515,7 @@ snmp trap vmwareTrapAnomalyClear
 vmwareTrapCapacityRemainingActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapCapacityRemainingActive
@@ -526,7 +526,7 @@ snmp trap vmwareTrapCapacityRemainingActive
 vmwareTrapCapacityRemainingChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapCapacityRemainingChange
@@ -537,7 +537,7 @@ snmp trap vmwareTrapCapacityRemainingChange
 vmwareTrapCapacityRemainingClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapCapacityRemainingClear
@@ -548,7 +548,7 @@ snmp trap vmwareTrapCapacityRemainingClear
 vmwareTrapComplianceActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapComplianceActive
@@ -559,7 +559,7 @@ snmp trap vmwareTrapComplianceActive
 vmwareTrapComplianceChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapComplianceChange
@@ -570,7 +570,7 @@ snmp trap vmwareTrapComplianceChange
 vmwareTrapComplianceClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapComplianceClear
@@ -581,7 +581,7 @@ snmp trap vmwareTrapComplianceClear
 vmwareTrapConsolidatedAlertActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapConsolidatedAlertActive
@@ -592,7 +592,7 @@ snmp trap vmwareTrapConsolidatedAlertActive
 vmwareTrapConsolidatedAlertChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapConsolidatedAlertChange
@@ -603,7 +603,7 @@ snmp trap vmwareTrapConsolidatedAlertChange
 vmwareTrapConsolidatedAlertClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapConsolidatedAlertClear
@@ -614,7 +614,7 @@ snmp trap vmwareTrapConsolidatedAlertClear
 vmwareTrapDensityActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapDensityActive
@@ -625,7 +625,7 @@ snmp trap vmwareTrapDensityActive
 vmwareTrapDensityChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapDensityChange
@@ -636,7 +636,7 @@ snmp trap vmwareTrapDensityChange
 vmwareTrapDensityClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapDensityClear
@@ -647,7 +647,7 @@ snmp trap vmwareTrapDensityClear
 vmwareTrapFaultActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapFaultActive
@@ -658,7 +658,7 @@ snmp trap vmwareTrapFaultActive
 vmwareTrapFaultChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapFaultChange
@@ -669,7 +669,7 @@ snmp trap vmwareTrapFaultChange
 vmwareTrapFaultClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapFaultClear
@@ -680,7 +680,7 @@ snmp trap vmwareTrapFaultClear
 vmwareTrapKPIBreachActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapKPIBreachActive
@@ -691,7 +691,7 @@ snmp trap vmwareTrapKPIBreachActive
 vmwareTrapKPIBreachChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapKPIBreachChange
@@ -702,7 +702,7 @@ snmp trap vmwareTrapKPIBreachChange
 vmwareTrapKPIBreachClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapKPIBreachClear
@@ -713,7 +713,7 @@ snmp trap vmwareTrapKPIBreachClear
 vmwareTrapKPIHTBreachActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapKPIHTBreachActive
@@ -724,7 +724,7 @@ snmp trap vmwareTrapKPIHTBreachActive
 vmwareTrapKPIHTBreachChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapKPIHTBreachChange
@@ -735,7 +735,7 @@ snmp trap vmwareTrapKPIHTBreachChange
 vmwareTrapKPIHTBreachClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapKPIHTBreachClear
@@ -746,7 +746,7 @@ snmp trap vmwareTrapKPIHTBreachClear
 vmwareTrapKPIPredictionActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapKPIPredictionActive
@@ -757,7 +757,7 @@ snmp trap vmwareTrapKPIPredictionActive
 vmwareTrapKPIPredictionChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapKPIPredictionChange
@@ -768,7 +768,7 @@ snmp trap vmwareTrapKPIPredictionChange
 vmwareTrapKPIPredictionClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapKPIPredictionClear
@@ -779,7 +779,7 @@ snmp trap vmwareTrapKPIPredictionClear
 vmwareTrapNotificationActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapNotificationActive
@@ -790,7 +790,7 @@ snmp trap vmwareTrapNotificationActive
 vmwareTrapNotificationChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapNotificationChange
@@ -801,7 +801,7 @@ snmp trap vmwareTrapNotificationChange
 vmwareTrapNotificationClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapNotificationClear
@@ -812,7 +812,7 @@ snmp trap vmwareTrapNotificationClear
 vmwareTrapResourceDisconnectedActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapResourceDisconnectedActive
@@ -823,7 +823,7 @@ snmp trap vmwareTrapResourceDisconnectedActive
 vmwareTrapResourceDisconnectedClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapResourceDisconnectedClear
@@ -834,7 +834,7 @@ snmp trap vmwareTrapResourceDisconnectedClear
 vmwareTrapStressActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapStressActive
@@ -845,7 +845,7 @@ snmp trap vmwareTrapStressActive
 vmwareTrapStressChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapStressChange
@@ -856,7 +856,7 @@ snmp trap vmwareTrapStressChange
 vmwareTrapStressClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapStressClear
@@ -867,7 +867,7 @@ snmp trap vmwareTrapStressClear
 vmwareTrapTest
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapTest
@@ -878,7 +878,7 @@ snmp trap vmwareTrapTest
 vmwareTrapTimeRemainingActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapTimeRemainingActive
@@ -889,7 +889,7 @@ snmp trap vmwareTrapTimeRemainingActive
 vmwareTrapTimeRemainingChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapTimeRemainingChange
@@ -900,7 +900,7 @@ snmp trap vmwareTrapTimeRemainingChange
 vmwareTrapTimeRemainingClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapTimeRemainingClear
@@ -911,7 +911,7 @@ snmp trap vmwareTrapTimeRemainingClear
 vmwareTrapWasteActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapWasteActive
@@ -922,7 +922,7 @@ snmp trap vmwareTrapWasteActive
 vmwareTrapWasteChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapWasteChange
@@ -933,7 +933,7 @@ snmp trap vmwareTrapWasteChange
 vmwareTrapWasteClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapWasteClear
@@ -944,7 +944,7 @@ snmp trap vmwareTrapWasteClear
 vmwareTrapWorkloadActive
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapWorkloadActive
@@ -955,7 +955,7 @@ snmp trap vmwareTrapWorkloadActive
 vmwareTrapWorkloadChange
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapWorkloadChange
@@ -966,7 +966,7 @@ snmp trap vmwareTrapWorkloadChange
 vmwareTrapWorkloadClear
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareTrapWorkloadClear
@@ -977,7 +977,7 @@ snmp trap vmwareTrapWorkloadClear
 vmwareVmwSrmRecoveryPlanExecuteCleanupBegin
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareVmwSrmRecoveryPlanExecuteCleanupBegin
@@ -988,7 +988,7 @@ snmp trap vmwareVmwSrmRecoveryPlanExecuteCleanupBegin
 vmwareVmwSrmRecoveryPlanExecuteEndEvent
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareVmwSrmRecoveryPlanExecuteEndEvent
@@ -999,7 +999,7 @@ snmp trap vmwareVmwSrmRecoveryPlanExecuteEndEvent
 vmwareVmwSrmRecoveryPlanServerCommandBegin
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareVmwSrmRecoveryPlanServerCommandBegin
@@ -1010,7 +1010,7 @@ snmp trap vmwareVmwSrmRecoveryPlanServerCommandBegin
 vmwareVmwSrmRecoveryVmBeginEvent
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vmwareVmwSrmRecoveryVmBeginEvent
@@ -1021,7 +1021,7 @@ snmp trap vmwareVmwSrmRecoveryVmBeginEvent
 vpxdAlarm
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vpxdAlarm
@@ -1032,7 +1032,7 @@ snmp trap vpxdAlarm
 vpxdAlarmInfo
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vpxdAlarmInfo
@@ -1043,7 +1043,7 @@ snmp trap vpxdAlarmInfo
 vpxdDiagnostic
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vpxdDiagnostic
@@ -1054,7 +1054,7 @@ snmp trap vpxdDiagnostic
 vpxdTrap
 </property>
 <property type="int" id="sequence" mode="w" >
-7
+0
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap vpxdTrap

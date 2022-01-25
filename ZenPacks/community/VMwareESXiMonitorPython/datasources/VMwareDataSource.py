@@ -393,10 +393,10 @@ class VMwareDataSourcePlugin(PythonDataSourcePlugin):
                 dataDatastore['connectionStatus'] = 2
             dataDatastores[datastore.summary.name] = dataDatastore
 
-        #log.debug(' dataHosts is %s \n' % (dataHosts))
-        #log.debug(' dataGuests is %s \n' % (dataGuests))
+        log.debug(' dataHosts is %s \n' % (dataHosts))
+        log.debug(' dataGuests is %s \n' % (dataGuests))
         log.debug(' dataInterfaces is %s \n' % (dataInterfaces))
-        #log.debug(' dataDatastores is %s \n' % (dataDatastores))
+        log.debug(' dataDatastores is %s \n' % (dataDatastores))
 
         data = self.new_data()
         for ds in config.datasources:

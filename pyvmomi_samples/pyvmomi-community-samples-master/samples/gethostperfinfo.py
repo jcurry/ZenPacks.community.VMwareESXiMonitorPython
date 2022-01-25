@@ -173,7 +173,7 @@ def main():
         #print('VM summary.overallStatus is %s \n' % (vm.summary.overallStatus))
         #print('VM Perf provide summary is %s \n' % (perfManager.QueryPerfProviderSummary(vm)))
         #if vm.runtime.powerState == 'poweredOn' and  vm.name == 'SWIDVM33':
-        if vm.runtime.powerState == 'poweredOn' and 'SWIDVM3' in vm.name:
+        if vm.runtime.powerState == 'poweredOn' and 'centos' in vm.name:
             print('VM is %s name is %s \n' % (vm, vm.name))
             print('VM runtime.powerState is %s \n' % (vm.runtime.powerState))
             print('VM summary.overallStatus is %s \n' % (vm.summary.overallStatus))

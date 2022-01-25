@@ -159,6 +159,7 @@ Requirements & Dependencies
 ===========================
 
     * Zenoss Versions Supported:  4.x
+    * ZenPack 3.0.4 tested with Zenoss 6.2.1
     * External Dependencies 
 
       * The zenpacklib package that this ZenPack is built on, requires PyYAML.  This is installed as 
@@ -212,6 +213,10 @@ Requirements & Dependencies
     * ZenPack Dependencies: PythonCollector >= 1.6
     * Installation Notes: Restart zenoss entirely after installation
     * Configuration: Remember to set the zVSphereUsername and zVSpherePassword properties for devices / device classes.
+    * 
+    * V3.0.4 of the ZenPack has been installed on Zenoss 6.2.1.   This ZenPack predates the zenpacklib ZenPack; however
+      this ZenPack packages it's own zenpacklib and uses it.  The installation was tested with ZenPacks.zenoss.ZenPackLib 2.1.1
+      already installed.
 
 
 
@@ -246,6 +251,7 @@ Device Support
 ==============
 
 The ZenPack has only been tested so far with Zenoss 4.2.5 with SUP 203 and SUP 457.
+ZenPack 3.0.4 has been lightly tested with Zenoss 6.2.1.
 
 
 Upgrading from ZenPacks.community.VMwareESXiMonitor to this ZenPack ( ZenPacks.community.VMwareESXiMonitorPython )
@@ -287,6 +293,8 @@ Change History
      so libdir includes these pyvmomi libraries.
 * 3.0.3
    * The operating status of all physical network interfaces is now being monitored.
+* 3.0.4
+   * Minor update to datasource.  Lightly tested against Zenoss 6.2.1.
 
 
 Screenshots
@@ -297,7 +305,7 @@ See the screenshots directory.
 
 .. External References Below. Nothing Below This Line Should Be Rendered
 
-.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.3-py2.7.egg?raw=true
+.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.4-py2.7.egg?raw=true
 
 
 Acknowledgements

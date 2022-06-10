@@ -16,30 +16,11 @@ VMwareESXiDatastoreMap gathers ESXi Datastore information.
 
 """
 
-from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
-import atexit
 from twisted.internet.defer import returnValue, inlineCallbacks
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
-
-def getData(host, username, password, port, log):
-
-    log.debug('In getData. host is %s, username is %s, password is %s, port is %s \n' % (host, username, password, port))
-    serviceInstance = SmartConnect(host=host,
-                                   user=username,
-                                   pwd=password,
-                                   port=port)
-    atexit.register(Disconnect, serviceInstance)
-    content = serviceInstance.RetrieveContent()
-    datastore_view = content.viewManager.CreateContainerView(content.rootFolder,
-                                                        [vim.Datastore],
-                                                        True)
-    datastores = [datastore for datastore in datastore_view.view]
-    log.debug(' in getData - datastores is %s \n' % (datastores))
-    datastore_view.Destroy()
-
-    return datastores
+from ZenPacks.community.VMwareESXiMonitorPython.VMwareESXigetData import getData
 
 
 class VMwareESXiDatastoreMap(PythonPlugin):
@@ -58,7 +39,7 @@ class VMwareESXiDatastoreMap(PythonPlugin):
             returnValue(None)
         port = 443
         try:
-            s = yield getData(device.manageIp, username, password, port, log)
+            s = yield getData(device.id, username, password, port, log, [vim.Datastore])
         except Exception, e:
             log.error(
                     "In collect exception %s: %s", device.id, e)

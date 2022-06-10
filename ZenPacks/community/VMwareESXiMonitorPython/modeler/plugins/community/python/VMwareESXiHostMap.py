@@ -16,31 +16,11 @@ VMwareESXiHostMap gathers ESXi Host information.
 
 """
 
-from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
-import atexit
 from twisted.internet.defer import returnValue, inlineCallbacks
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.DataCollector.plugins.DataMaps import ObjectMap
-
-def getData(host, username, password, port, log):
-
-    log.debug('In getData. host is %s, username is %s, password is %s, port is %s \n' % (host, username, password, port))
-    serviceInstance = SmartConnect(host=host,
-                                   user=username,
-                                   pwd=password,
-                                   port=port)
-    atexit.register(Disconnect, serviceInstance)
-    content = serviceInstance.RetrieveContent()
-    host_view = content.viewManager.CreateContainerView(content.rootFolder,
-                                                        [vim.HostSystem],
-                                                        True)
-    hosts = [host for host in host_view.view]
-    log.debug(' in getData - hosts is %s \n' % (hosts))
-    host_view.Destroy()
-
-    return hosts
-
+from ZenPacks.community.VMwareESXiMonitorPython.VMwareESXigetData import getData
 
 class VMwareESXiHostMap(PythonPlugin):
     deviceProperties = PythonPlugin.deviceProperties + (
@@ -58,7 +38,7 @@ class VMwareESXiHostMap(PythonPlugin):
             returnValue(None)
         port = 443
         try:
-            s = yield getData(device.manageIp, username, password, port, log)
+            s = yield getData(device.id, username, password, port, log, [vim.HostSystem])
         except Exception, e:
             log.error(
                     "In collect exception %s: %s", device.id, e)

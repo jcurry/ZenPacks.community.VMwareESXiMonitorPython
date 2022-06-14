@@ -3,7 +3,7 @@
 # or saved.  Do not modify them directly here.
 # NB: PACKAGES is deprecated
 NAME = "ZenPacks.community.VMwareESXiMonitorPython"
-VERSION = "3.0.5"
+VERSION = "3.0.6"
 AUTHOR = "Matthias Kittl, Jane Curry, Eric Enns"
 LICENSE = "GPLv2"
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.community']

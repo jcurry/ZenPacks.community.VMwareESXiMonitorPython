@@ -297,6 +297,8 @@ Change History
    * Minor update to datasource.  Lightly tested against Zenoss 6.2.1.
 * 3.0.5
    * Updates to modelers to call common getData in VMwareESXigetData.py. SmartConnect uses FQDN name rather than IP address to avoid issues with certificates. 
+* 3.0.6
+   * Updates to datasource - SmartConnect uses FQDN name rather than IP address to avoid issues with certificates.
 
 
 Screenshots
@@ -307,7 +309,7 @@ See the screenshots directory.
 
 .. External References Below. Nothing Below This Line Should Be Rendered
 
-.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.5-py2.7.egg?raw=true
+.. _Latest Package for Python 2.7: https://github.com/jcurry/ZenPacks.community.VMwareESXiMonitorPython/blob/master/dist/ZenPacks.community.VMwareESXiMonitorPython-3.0.6-py2.7.egg?raw=true
 
 
 Acknowledgements
